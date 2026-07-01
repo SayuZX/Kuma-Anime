@@ -149,7 +149,9 @@ const ANIMASU = {
     })),
   mapEpisode: (j) => {
     const all = asArray(j?.streams);
-    const pick = all.find((s) => s.url && !AVOID_DEFAULT.test(s.url)) || all[0];
+    const clean = all.find((s) => /pixeldrain\.com\/u\//i.test(String(s.url)));
+    const embed = all.find((s) => s.url && !AVOID_DEFAULT.test(s.url));
+    const pick = clean || embed || all[0];
     return {
       embedUrl: proxify(pick?.url),
       qualities: groupAnimasuStreams(all),
