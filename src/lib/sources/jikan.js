@@ -41,6 +41,7 @@ export function mapAnimeCard(a, rank) {
     id: String(a.mal_id),
     name: a.title_english || a.title || "Unknown",
     jname: a.title_japanese || a.title || "??",
+    romaji: a.title || a.title_english || "",
     poster,
     cover: poster,
     carouselImage: poster,

@@ -49,7 +49,7 @@ const StreamingPage = () => {
       setAnimeData(MetaData);
       if (MetaData) {
         const EpisodesData = await FetchEpisodesByMappedID(
-          MetaData.anime.info.name
+          MetaData.anime.info.romaji || MetaData.anime.info.name
         );
         setEpisodesData(EpisodesData.episodes);
         fetchEpisodeImages(MetaData.anime.info.anilistId);

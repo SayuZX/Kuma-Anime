@@ -28,6 +28,7 @@ function toDetailShape(result) {
         anilistId: d.id ?? null,
         name: d.name || "",
         jname: d.jname || "",
+        romaji: d.romaji || d.name || "",
         poster: d.poster || "",
         description: d.description || "",
         promotionalVideos: result?.videos || [],

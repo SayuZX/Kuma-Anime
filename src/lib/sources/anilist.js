@@ -40,6 +40,7 @@ export function mapAnimeCard(m, rank) {
     anilistId: String(m.id),
     name: m.title?.english || m.title?.romaji || "Unknown",
     jname: m.title?.native || m.title?.romaji || "??",
+    romaji: m.title?.romaji || "",
     poster,
     cover,
     carouselImage: cover,
