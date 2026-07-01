@@ -2,6 +2,7 @@
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import Link from "next/link";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBook, faFireAlt } from "@fortawesome/free-solid-svg-icons";
@@ -68,13 +69,13 @@ export default function ReusableCarousel({ title, data, className }) {
                       className="relative carousel overflow-hidden rounded-lg group"
                       href={`/pages/Manga/details/${item.id}`}
                     >
-                      <img
+                      <Image
                         className="rounded-xl object-cover h-[290px] w-[230px] max-md:h-[250px]"
-                        src={item.image || "/path/to/default-image.jpg"}
-                        draggable="false"
-                        onError={(e) =>
-                          (e.target.src = "/path/to/default-image.jpg")
-                        }
+                        src={item.image || "/manga-carousel.png"}
+                        alt={item.title || "poster"}
+                        width={230}
+                        height={290}
+                        draggable={false}
                       />
                       <div className="absolute flex justify-center items-center h-full w-full top-0 group-hover:seasonCard transition-full rounded-xl">
                         <FontAwesomeIcon

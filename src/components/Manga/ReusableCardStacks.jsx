@@ -2,6 +2,7 @@
 import { faBook, faCircle, faFireAlt, faStar } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "../ui/button";
 import TrendingTabs from "@/components/Manga/TrendingTabs";
 import { Skeleton } from "../ui/skeleton";
@@ -26,10 +27,12 @@ const ReusableCardStacks = ({ data, title }) => {
           className="flex flex-col"
         >
           <div className="relative flex items-center justify-center group">
-            <img
+            <Image
               className="w-[173px] h-[244px] object-cover rounded-md"
-              src={manga.image}
-              alt=""
+              src={manga.image || "/manga-carousel.png"}
+              alt={manga.title || "cover"}
+              width={173}
+              height={244}
             />
             <div className="absolute flex justify-center items-center h-full w-full top-0 group-hover:seasonCard transition-full rounded-xl">
               <FontAwesomeIcon

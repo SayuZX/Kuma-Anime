@@ -11,6 +11,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { Swiper, SwiperSlide } from "swiper/react";
 import Link from "next/link";
+import Image from "next/image";
 import { Badge } from "./ui/badge";
 import { Separator } from "./ui/separator";
 import { Skeleton } from "./ui/skeleton";
@@ -37,9 +38,12 @@ export default function BigCarousel({ data }) {
         {data.map((item, index) => (
           <SwiperSlide key={index}>
             <div className="text-white rounded-[5px] relative">
-              <img
-                src={item.poster}
-                alt="Cover Image"
+              <Image
+                src={item.poster || "/homepage-cover.jpg"}
+                alt={item.name || "Cover Image"}
+                width={1280}
+                height={400}
+                priority={index === 0}
                 className="w-full h-[400px] object-cover max-md:h-[300px]"
               />
               <div className="absolute inset-0 custom-gradient"></div>
