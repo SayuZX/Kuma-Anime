@@ -33,14 +33,7 @@ function groupQualities(qualities) {
     .filter((group) => group.servers.length);
 }
 
-const NON_EMBEDDABLE =
-  /pixeldrain|mega\.nz|drive\.google\.com\/file|acefile|krakenfiles|zippyshare|mediafire/i;
-
-function isEmbeddable(url) {
-  return url && !NON_EMBEDDABLE.test(url);
-}
-
-const DEPRIORITIZE = /short\.ink/i;
+const BROKEN_DEFAULT = /pixeldrain|short\.ink/i;
 
 function groupAnimasuStreams(streams) {
   const groups = {};
@@ -147,8 +140,7 @@ const ANIMASU = {
     })),
   mapEpisode: (j) => {
     const all = asArray(j?.streams);
-    const good = all.filter((s) => isEmbeddable(s.url));
-    const pick = good.find((s) => !DEPRIORITIZE.test(s.url)) || good[0] || all[0];
+    const pick = all.find((s) => s.url && !BROKEN_DEFAULT.test(s.url)) || all[0];
     return {
       embedUrl: pick?.url || "",
       qualities: groupAnimasuStreams(all),
