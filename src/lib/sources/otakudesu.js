@@ -20,22 +20,39 @@ async function get(path) {
   return data.data ?? null;
 }
 
+function cleanTitle(title) {
+  return String(title || "")
+    .replace(/\((?:tv|movie|ova|ona|special)\)/gi, "")
+    .replace(
+      /\b(?:\d+(?:st|nd|rd|th)\s+season|season\s*\d+|part\s*\d+|cour\s*\d+)\b/gi,
+      ""
+    )
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
 export async function searchByTitle(title) {
   if (!title) return null;
-  const data = await get(`/search?q=${encodeURIComponent(title)}`);
-  const list = asArray(data?.animeList);
-  if (!list.length) return null;
   const norm = title.trim().toLowerCase();
-  let best = list[0];
-  let score = -1;
-  for (const item of list) {
-    const s = jaroWinklerDistance(norm, String(item.title || "").toLowerCase());
-    if (s > score) {
-      score = s;
-      best = item;
+  const queries = [cleanTitle(title), title].filter(
+    (value, index, arr) => value && arr.indexOf(value) === index
+  );
+  for (const query of queries) {
+    const data = await get(`/search?q=${encodeURIComponent(query)}`);
+    const list = asArray(data?.animeList);
+    if (!list.length) continue;
+    let best = list[0];
+    let score = -1;
+    for (const item of list) {
+      const s = jaroWinklerDistance(norm, String(item.title || "").toLowerCase());
+      if (s > score) {
+        score = s;
+        best = item;
+      }
     }
+    return best?.animeId || null;
   }
-  return best?.animeId || null;
+  return null;
 }
 
 export async function getEpisodes(animeId, poster = "") {
