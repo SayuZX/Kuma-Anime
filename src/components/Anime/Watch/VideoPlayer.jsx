@@ -58,6 +58,26 @@ const VideoPlayer = ({
     );
   }
 
+  const isEmbed = episodeSrc && !/\.(m3u8|mp4)(\?|$)/i.test(episodeSrc);
+  if (isEmbed) {
+    return (
+      <div className="h-full max-md:h-auto max-md:aspect-video w-[72%] max-md:w-full rounded-3xl overflow-hidden">
+        <iframe
+          key={currentEpisode}
+          src={episodeSrc}
+          title={
+            episodesData[currentEpisode - 1]?.title ||
+            `Episode ${currentEpisode}`
+          }
+          className="w-full h-full min-h-[320px] rounded-3xl border-0"
+          allow="autoplay; fullscreen; encrypted-media"
+          allowFullScreen
+          referrerPolicy="no-referrer"
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="h-full max-md:h-auto max-md:aspect-video w-[72%] max-md:w-full rounded-3xl">
       <MediaPlayer

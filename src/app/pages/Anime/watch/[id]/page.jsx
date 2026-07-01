@@ -48,7 +48,9 @@ const StreamingPage = () => {
       const MetaData = await FetchAnimeByAniwatchID(id);
       setAnimeData(MetaData);
       if (MetaData) {
-        const EpisodesData = await FetchEpisodesByMappedID(id);
+        const EpisodesData = await FetchEpisodesByMappedID(
+          MetaData.anime.info.name
+        );
         setEpisodesData(EpisodesData.episodes);
         fetchEpisodeImages(MetaData.anime.info.anilistId);
       }

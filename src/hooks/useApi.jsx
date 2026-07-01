@@ -10,9 +10,7 @@ import {
   getChapterSource,
   searchManga as searchMangaSource,
 } from "@/lib/manga";
-import * as jikan from "@/lib/sources/jikan";
-import { getEpisodeSources } from "@/lib/sources/streamProvider";
-import { orderTracks } from "@/lib/streamPrefs";
+import * as otakudesu from "@/lib/sources/otakudesu";
 import { sanitizeQuery } from "@/lib/normalize";
 import { logger } from "@/lib/logger";
 
@@ -73,19 +71,22 @@ export const FetchAnimeByID = async (id) => {
   };
 };
 
-export const FetchEpisodesByMappedID = async (id) => {
-  const episodes = await jikan.animeEpisodes(id).catch(() => []);
+export const FetchEpisodesByMappedID = async (title) => {
+  const animeId = await otakudesu.searchByTitle(title);
+  if (!animeId) return { episodes: [] };
+  const episodes = await otakudesu.getEpisodes(animeId);
   return { episodes: episodes || [] };
 };
 
 export const FetchEpisodesData = async () => [];
-export const FetchEpisodeLinksByMappedID = async (
-  episodeId,
-  server = "vidstream",
-  category = "sub"
-) => {
-  const { sources, tracks } = await getEpisodeSources(episodeId, server, category);
-  return { sources, tracks: orderTracks(tracks) };
+export const FetchEpisodeLinksByMappedID = async (episodeId) => {
+  const { embedUrl } = await otakudesu.getEpisodeEmbed(episodeId);
+  return {
+    sources: embedUrl
+      ? [{ url: embedUrl, quality: "default", isM3U8: false }]
+      : [],
+    tracks: [],
+  };
 };
 
 export const SearchAniWatch = async (query, page = 1) => {
