@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  InstagramIcon,
-} from "lucide-react";
+import { InstagramIcon } from "lucide-react";
+import { LEGAL_LINKS } from "@/lib/legalContent";
 
 export default function Footer() {
   return (
@@ -43,22 +42,17 @@ export default function Footer() {
           </div>
           <div>
             <h3 className="font-semibold mb-4">Legal</h3>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link href="/terms" className="hover:underline">
-                  Terms of Service
-                </Link>
-              </li>
-              <li>
-                <Link href="/privacy" className="hover:underline">
-                  Privacy Policy
-                </Link>
-              </li>
-              <li>
-                <Link href="/copyright" className="hover:underline">
-                  Copyright
-                </Link>
-              </li>
+            <ul className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+              {LEGAL_LINKS.map((link) => (
+                <li key={link.slug}>
+                  <Link
+                    href={`/legal/${link.slug}`}
+                    className="hover:underline"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
           <div className="space-y-4">

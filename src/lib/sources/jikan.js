@@ -7,7 +7,7 @@ import {
 } from "../normalize";
 
 const BASE = "https://api.jikan.moe/v4";
-const MIN_INTERVAL = 350;
+const MIN_INTERVAL = 550;
 
 function jikanGet(path, opts = {}) {
   return fetchJsonOrThrow(`${BASE}${path}`, {
@@ -91,11 +91,9 @@ export async function searchAnime(query, params = "") {
 
 export async function genres() {
   const data = await jikanGet(`/genres/anime`, { cacheTtl: 24 * 3600 * 1000 });
-  return asArray(data?.data).map((g) => ({
-    id: String(g.mal_id),
-    name: g.name,
-    count: g.count,
-  }));
+  return asArray(data?.data)
+    .map((g) => g.name)
+    .filter(Boolean);
 }
 
 export async function animeFull(id) {
