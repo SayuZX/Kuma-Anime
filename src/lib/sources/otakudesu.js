@@ -10,6 +10,17 @@ const ENV_BASE =
     process.env.NEXT_PUBLIC_STREAM_API_URL) ||
   "";
 
+async function callJson(url) {
+  const j = await fetchJson(url, {
+    where: "stream",
+    timeout: 15000,
+    retries: 1,
+    cacheTtl: 5 * 60 * 1000,
+  });
+  if (!j || (j.statusCode && j.statusCode >= 400)) return null;
+  return j;
+}
+
 function groupQualities(qualities) {
   return asArray(qualities)
     .map((quality) => ({
@@ -20,6 +31,21 @@ function groupQualities(qualities) {
       })),
     }))
     .filter((group) => group.servers.length);
+}
+
+function groupAnimasuStreams(streams) {
+  const groups = {};
+  asArray(streams).forEach((s) => {
+    const res = (String(s.name || "").match(/(\d{3,4}p)/) || [])[1] || "Default";
+    (groups[res] = groups[res] || []).push({
+      name: s.name || res,
+      serverId: enc(s.url || ""),
+    });
+  });
+  return Object.entries(groups).map(([resolution, servers]) => ({
+    resolution,
+    servers,
+  }));
 }
 
 const OTAKU_SHAPE = {
@@ -60,9 +86,69 @@ const WAJIK = {
   ...OTAKU_SHAPE,
 };
 
+const ANIKOTO = {
+  name: "anikoto",
+  base: "https://anikotoapi.site",
+  reverseEpisodes: false,
+  serverPath: null,
+  detailPath: (id) => `/series/${id}`,
+  customSearch: async (provider, title, norm) => {
+    let best = null;
+    let score = 0.72;
+    for (const page of [1, 2]) {
+      const j = await callJson(`${provider.base}/recent-anime?page=${page}`);
+      const list = asArray(j?.data);
+      if (!list.length) break;
+      for (const item of list) {
+        const candidates = [item.title, item.alternative, ...asArray(item.titles)]
+          .filter(Boolean)
+          .map((c) => String(c).toLowerCase());
+        for (const c of candidates) {
+          const s = jaroWinklerDistance(norm, c);
+          if (s > score) {
+            score = s;
+            best = item;
+          }
+        }
+      }
+    }
+    return best?.id != null ? String(best.id) : null;
+  },
+  mapEpisodes: (j) =>
+    asArray(j?.data?.episodes).map((e) => ({
+      episodeId: enc(e?.embed_url?.sub || e?.embed_url?.dub || ""),
+      title: e.title || `Episode ${e.number}`,
+    })),
+  getEmbed: (id) => ({ embedUrl: decodeURIComponent(id || ""), qualities: [] }),
+};
+
+const ANIMASU = {
+  name: "animasu",
+  base: "https://www.sankavollerei.web.id/anime/animasu",
+  searchPath: (q) => `/search/${enc(q)}`,
+  detailPath: (s) => `/detail/${s}`,
+  episodePath: (s) => `/episode/${s}`,
+  serverPath: null,
+  mapSearch: (j) =>
+    asArray(j?.animes).map((a) => ({ animeId: a.slug, title: a.title })),
+  mapEpisodes: (j) =>
+    asArray(j?.detail?.episodes).map((e) => ({
+      episodeId: e.slug,
+      title: e.name,
+    })),
+  mapEpisode: (j) => {
+    const streams = asArray(j?.streams);
+    return {
+      embedUrl: streams[0]?.url || "",
+      qualities: groupAnimasuStreams(streams),
+    };
+  },
+  resolveServer: (id) => decodeURIComponent(id || ""),
+};
+
 const PROVIDERS = ENV_BASE
   ? [{ ...SANKA, name: "custom", base: ENV_BASE.replace(/\/$/, "") }]
-  : [SANKA, WAJIK];
+  : [ANIMASU, SANKA, WAJIK, ANIKOTO];
 
 function providerByName(name) {
   return PROVIDERS.find((p) => p.name === name) || PROVIDERS[0];
@@ -73,17 +159,6 @@ function splitTag(tagged) {
   const idx = raw.indexOf(":");
   if (idx <= 0) return { provider: providerByName(), id: raw };
   return { provider: providerByName(raw.slice(0, idx)), id: raw.slice(idx + 1) };
-}
-
-async function callJson(url) {
-  const j = await fetchJson(url, {
-    where: "stream",
-    timeout: 15000,
-    retries: 1,
-    cacheTtl: 5 * 60 * 1000,
-  });
-  if (!j || (j.statusCode && j.statusCode >= 400)) return null;
-  return j;
 }
 
 function sanitizeQuery(title) {
@@ -107,6 +182,7 @@ function queryVariants(title) {
 }
 
 async function searchOne(provider, title, norm) {
+  if (provider.customSearch) return provider.customSearch(provider, title, norm);
   for (const query of queryVariants(title)) {
     const j = await callJson(provider.base + provider.searchPath(query));
     const list = provider.mapSearch(j).filter((a) => a.animeId);
@@ -130,16 +206,14 @@ async function searchOne(provider, title, norm) {
 
 async function episodesOne(provider, animeId, poster) {
   const j = await callJson(provider.base + provider.detailPath(animeId));
-  const eps = provider.mapEpisodes(j).filter((e) => e.episodeId);
-  return eps
-    .slice()
-    .reverse()
-    .map((ep, index) => ({
-      episodeId: `${provider.name}:${ep.episodeId}`,
-      number: index + 1,
-      title: ep.title || `Episode ${index + 1}`,
-      image: poster,
-    }));
+  let eps = provider.mapEpisodes(j).filter((e) => e.episodeId);
+  if (provider.reverseEpisodes !== false) eps = eps.slice().reverse();
+  return eps.map((ep, index) => ({
+    episodeId: `${provider.name}:${ep.episodeId}`,
+    number: index + 1,
+    title: ep.title || `Episode ${index + 1}`,
+    image: poster,
+  }));
 }
 
 export async function getAnimeEpisodes(title, poster = "") {
@@ -156,8 +230,9 @@ export async function getAnimeEpisodes(title, poster = "") {
 
 export async function getEpisodeEmbed(taggedEpisodeId) {
   const { provider, id } = splitTag(taggedEpisodeId);
+  if (provider.getEmbed) return provider.getEmbed(id);
   const j = await callJson(provider.base + provider.episodePath(id));
-  if (!j) return { embedUrl: "", servers: [] };
+  if (!j) return { embedUrl: "", qualities: [] };
   const { embedUrl, qualities } = provider.mapEpisode(j);
   return {
     embedUrl,
@@ -173,6 +248,7 @@ export async function getEpisodeEmbed(taggedEpisodeId) {
 
 export async function getServerEmbed(taggedServerId) {
   const { provider, id } = splitTag(taggedServerId);
+  if (provider.resolveServer) return provider.resolveServer(id);
   if (!provider.serverPath) return "";
   const j = await callJson(provider.base + provider.serverPath(id));
   return provider.mapServer(j);

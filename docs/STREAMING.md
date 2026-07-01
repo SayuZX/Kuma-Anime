@@ -7,8 +7,15 @@ Indonesian subtitles, the watch page uses an Otakudesu-scraper API.
 By default it tries several public providers in order and uses the first that
 returns episodes for a title:
 
-1. Sanka Vollerei — `https://www.sankavollerei.web.id/anime`
-2. wajik-anime-api — `https://wajik-anime-api.vercel.app`
+1. animasu (via Sanka Vollerei) — `.../anime/animasu` — Indo sub, includes movies,
+   multiple resolutions (480p/720p/1080p) with direct embeds
+2. Sanka Vollerei (Otakudesu) — `https://www.sankavollerei.web.id/anime`
+3. wajik-anime-api — `https://wajik-anime-api.vercel.app`
+4. anikoto — `https://anikotoapi.site` (English sub, recent titles only; last resort)
+
+Each provider has its own paths AND response mappers (some are search-based,
+anikoto matches against its recent list, animasu carries embeds inline), so
+differently-shaped APIs coexist.
 
 If one fails at any step (e.g. Sanka Vollerei 500s on a movie), the whole
 search → episodes flow retries on the next provider. Add or reorder providers
