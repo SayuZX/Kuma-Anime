@@ -31,7 +31,8 @@ const StreamingPage = () => {
   const [episodeSrc, setEpisodeSrc] = useState(null);
   const [captionsData, setCaptionsData] = useState(null);
   const [episodeLoading, setEpisodeLoading] = useState(true);
-  const [servers, setServers] = useState([]);
+  const [qualities, setQualities] = useState([]);
+  const [selectedResolution, setSelectedResolution] = useState("");
   const [activeServerId, setActiveServerId] = useState("");
   const [lastSavedTime, setLastSavedTime] = useState(0); 
   const { addAnimeEpisode } = useUserData();
@@ -80,7 +81,9 @@ const StreamingPage = () => {
         setActiveServerId("");
         const episodeSrc = await FetchEpisodeLinksByMappedID(current.episodeId);
         setCaptionsData(episodeSrc.tracks || []);
-        setServers(episodeSrc.servers || []);
+        const q = episodeSrc.qualities || [];
+        setQualities(q);
+        setSelectedResolution(q[0]?.resolution || "");
         setEpisodeSrc(episodeSrc.sources?.[0]?.url || null);
       } catch (error) {
         setEpisodeSrc(null);
@@ -121,7 +124,12 @@ const StreamingPage = () => {
     setCurrentEpisode(number);
   };
 
-  const handleQuality = async (serverId) => {
+  const handleResolution = (resolution) => {
+    setSelectedResolution(resolution);
+    setActiveServerId("");
+  };
+
+  const handleServer = async (serverId) => {
     setActiveServerId(serverId);
     const current = episodesData?.[currentEpisode - 1];
     if (!serverId) {
@@ -181,9 +189,11 @@ const StreamingPage = () => {
           <div className="flex flex-col w-[72%] max-md:w-full gap-3">
             <ServerSelector
               currentEpisode={currentEpisode}
-              servers={servers}
+              qualities={qualities}
+              selectedResolution={selectedResolution}
+              onResolution={handleResolution}
               activeServerId={activeServerId}
-              onSelect={handleQuality}
+              onServer={handleServer}
             />
             <BasicDetails data={animeData.anime} page="Streaming" />
             {animeData.seasons.length > 0 && (

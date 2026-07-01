@@ -81,13 +81,13 @@ export const FetchEpisodesByMappedID = async (title) => {
 export const FetchEpisodesData = async () => [];
 
 export const FetchEpisodeLinksByMappedID = async (episodeId) => {
-  const { embedUrl, servers } = await otakudesu.getEpisodeEmbed(episodeId);
+  const { embedUrl, qualities } = await otakudesu.getEpisodeEmbed(episodeId);
   return {
     sources: embedUrl
       ? [{ url: embedUrl, quality: "default", isM3U8: false }]
       : [],
     tracks: [],
-    servers: servers || [],
+    qualities: qualities || [],
   };
 };
 

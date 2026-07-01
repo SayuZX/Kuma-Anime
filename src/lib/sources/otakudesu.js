@@ -10,18 +10,16 @@ const ENV_BASE =
     process.env.NEXT_PUBLIC_STREAM_API_URL) ||
   "";
 
-function flattenQualities(qualities) {
-  const servers = [];
-  asArray(qualities).forEach((quality) => {
-    asArray(quality.serverList).forEach((server) => {
-      servers.push({
-        quality: quality.title,
+function groupQualities(qualities) {
+  return asArray(qualities)
+    .map((quality) => ({
+      resolution: quality.title,
+      servers: asArray(quality.serverList).map((server) => ({
         name: server.title,
         serverId: server.serverId,
-      });
-    });
-  });
-  return servers;
+      })),
+    }))
+    .filter((group) => group.servers.length);
 }
 
 const OTAKU_SHAPE = {
@@ -37,7 +35,7 @@ const OTAKU_SHAPE = {
     })),
   mapEpisode: (j) => ({
     embedUrl: j?.data?.defaultStreamingUrl || "",
-    servers: flattenQualities(j?.data?.server?.qualities),
+    qualities: groupQualities(j?.data?.server?.qualities),
   }),
   mapServer: (j) => j?.data?.url || "",
 };
@@ -85,7 +83,7 @@ const ONEPUNYA = {
     const d = j?.data ?? j;
     return {
       embedUrl: d?.stream_url ?? d?.streaming_url ?? d?.defaultStreamingUrl ?? "",
-      servers: [],
+      qualities: [],
     };
   },
   mapServer: () => "",
@@ -189,12 +187,15 @@ export async function getEpisodeEmbed(taggedEpisodeId) {
   const { provider, id } = splitTag(taggedEpisodeId);
   const j = await callJson(provider.base + provider.episodePath(id));
   if (!j) return { embedUrl: "", servers: [] };
-  const { embedUrl, servers } = provider.mapEpisode(j);
+  const { embedUrl, qualities } = provider.mapEpisode(j);
   return {
     embedUrl,
-    servers: asArray(servers).map((s) => ({
-      ...s,
-      serverId: `${provider.name}:${s.serverId}`,
+    qualities: asArray(qualities).map((group) => ({
+      resolution: group.resolution,
+      servers: asArray(group.servers).map((s) => ({
+        ...s,
+        serverId: `${provider.name}:${s.serverId}`,
+      })),
     })),
   };
 }
