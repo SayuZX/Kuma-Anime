@@ -75,9 +75,9 @@ export const FetchAnimeByID = async (id) => {
 };
 
 export const FetchEpisodesByMappedID = async (title) => {
-  const match = await otakudesu.searchByTitle(title);
-  if (!match) return { episodes: [] };
-  const episodes = await otakudesu.getEpisodes(match.source, match.animeId);
+  const animeId = await otakudesu.searchByTitle(title);
+  if (!animeId) return { episodes: [] };
+  const episodes = await otakudesu.getEpisodes(animeId);
   return { episodes: episodes || [] };
 };
 

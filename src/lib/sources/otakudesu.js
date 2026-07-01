@@ -6,13 +6,11 @@ const BASE = (
   (typeof process !== "undefined" &&
     process.env &&
     process.env.NEXT_PUBLIC_STREAM_API_URL) ||
-  "https://wajik-anime-api.vercel.app"
+  "https://www.sankavollerei.web.id/anime"
 ).replace(/\/$/, "");
 
-const SOURCES = ["otakudesu", "kuramanime"];
-
-async function get(source, path) {
-  const data = await fetchJson(`${BASE}/${source}${path}`, {
+async function get(path) {
+  const data = await fetchJson(`${BASE}${path}`, {
     where: "stream",
     timeout: 15000,
     retries: 1,
@@ -45,49 +43,43 @@ function queryVariants(title) {
 export async function searchByTitle(title) {
   if (!title) return null;
   const norm = title.trim().toLowerCase();
-  for (const source of SOURCES) {
-    for (const query of queryVariants(title)) {
-      const data = await get(source, `/search?q=${encodeURIComponent(query)}`);
-      const list = asArray(data?.animeList);
-      if (!list.length) continue;
-      let best = list[0];
-      let score = -1;
-      for (const item of list) {
-        const s = jaroWinklerDistance(
-          norm,
-          String(item.title || "").toLowerCase()
-        );
-        if (s > score) {
-          score = s;
-          best = item;
-        }
+  for (const query of queryVariants(title)) {
+    const data = await get(`/search/${encodeURIComponent(query)}`);
+    const list = asArray(data?.animeList);
+    if (!list.length) continue;
+    let best = list[0];
+    let score = -1;
+    for (const item of list) {
+      const s = jaroWinklerDistance(
+        norm,
+        String(item.title || "").toLowerCase()
+      );
+      if (s > score) {
+        score = s;
+        best = item;
       }
-      if (best?.animeId) return { source, animeId: best.animeId };
     }
+    if (best?.animeId) return best.animeId;
   }
   return null;
 }
 
-export async function getEpisodes(source, animeId, poster = "") {
-  const data = await get(source, `/anime/${animeId}`);
+export async function getEpisodes(animeId, poster = "") {
+  const data = await get(`/anime/${animeId}`);
   const eps = asArray(data?.episodeList);
   return eps
     .slice()
     .reverse()
     .map((ep, index) => ({
-      episodeId: `${source}:${ep.episodeId}`,
+      episodeId: ep.episodeId,
       number: index + 1,
       title: ep.title || `Episode ${index + 1}`,
       image: poster,
     }));
 }
 
-export async function getEpisodeEmbed(taggedEpisodeId) {
-  const raw = String(taggedEpisodeId || "");
-  const idx = raw.indexOf(":");
-  const source = idx > 0 ? raw.slice(0, idx) : SOURCES[0];
-  const episodeId = idx > 0 ? raw.slice(idx + 1) : raw;
-  const data = await get(source, `/episode/${episodeId}`);
+export async function getEpisodeEmbed(episodeId) {
+  const data = await get(`/episode/${episodeId}`);
   if (!data) return { embedUrl: "", servers: [] };
   const servers = [];
   asArray(data.server?.qualities).forEach((quality) => {
@@ -99,8 +91,10 @@ export async function getEpisodeEmbed(taggedEpisodeId) {
       });
     });
   });
-  return {
-    embedUrl: data.defaultStreamingUrl || data.streamingUrl || "",
-    servers,
-  };
+  return { embedUrl: data.defaultStreamingUrl || "", servers };
+}
+
+export async function getServerEmbed(serverId) {
+  const data = await get(`/server/${serverId}`);
+  return data?.url || "";
 }
