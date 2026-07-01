@@ -33,7 +33,8 @@ function groupQualities(qualities) {
     .filter((group) => group.servers.length);
 }
 
-const AVOID_DEFAULT = /pixeldrain|short\.ink/i;
+const AVOID_DEFAULT =
+  /pixeldrain|short\.ink|short\.icu|vidhide|callistanise|bestx|helvid/i;
 
 function proxify(url) {
   const u = String(url || "");
