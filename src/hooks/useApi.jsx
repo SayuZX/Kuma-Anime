@@ -11,6 +11,8 @@ import {
   searchManga as searchMangaSource,
 } from "@/lib/manga";
 import * as jikan from "@/lib/sources/jikan";
+import { getEpisodeSources } from "@/lib/sources/streamProvider";
+import { orderTracks } from "@/lib/streamPrefs";
 import { sanitizeQuery } from "@/lib/normalize";
 import { logger } from "@/lib/logger";
 
@@ -77,10 +79,14 @@ export const FetchEpisodesByMappedID = async (id) => {
 };
 
 export const FetchEpisodesData = async () => [];
-export const FetchEpisodeLinksByMappedID = async () => ({
-  sources: [],
-  tracks: [],
-});
+export const FetchEpisodeLinksByMappedID = async (
+  episodeId,
+  server = "vidstream",
+  category = "sub"
+) => {
+  const { sources, tracks } = await getEpisodeSources(episodeId, server, category);
+  return { sources, tracks: orderTracks(tracks) };
+};
 
 export const SearchAniWatch = async (query, page = 1) => {
   const q = sanitizeQuery(query);
