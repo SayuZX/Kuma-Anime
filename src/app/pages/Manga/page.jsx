@@ -6,25 +6,15 @@ import ReusableCarousel from "@/components/Manga/ReusableCarousel";
 import MangaTable from "@/components/Manga/MangaTable";
 import ReusableStack from "@/components/Manga/ReusableCardStacks";
 import ContinueReading from "@/components/continue-reading-section";
-import { mangaDataCarousel, mangaData, moreMangaData } from "@/lib/fallbackData";
 import { readCache, writeCache } from "@/lib/clientCache";
 
 const CACHE_KEY = "home:manga";
 
 const Manga = () => {
-  const [mangaList, setMangaList] = useState(mangaDataCarousel.mangaList);
-  const [newestData, setNewestData] = useState(
-    moreMangaData.mangaList.slice(11, 23)
-  );
-  const [latestData, setLatestData] = useState(
-    mangaData.mangaList.slice(12, 23)
-  );
-  const [tableData, setTableData] = useState([
-    moreMangaData.mangaList.slice(0, 10),
-    moreMangaData.mangaList.slice(11, 21),
-    mangaData.mangaList.slice(0, 10),
-    mangaData.mangaList.slice(11, 21),
-  ]);
+  const [mangaList, setMangaList] = useState(null);
+  const [newestData, setNewestData] = useState(null);
+  const [latestData, setLatestData] = useState(null);
+  const [tableData, setTableData] = useState(null);
 
   useEffect(() => {
     const apply = (d) => {
