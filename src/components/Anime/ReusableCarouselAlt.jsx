@@ -2,6 +2,7 @@
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import Link from "next/link";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faClosedCaptioning, faMicrophone, faPlay } from "@fortawesome/free-solid-svg-icons";
@@ -71,14 +72,13 @@ export default function ReusableCarouselAlt({ title, data = [], className }) {
                           : `/pages/Anime/details/${anime.id}`
                       }
                     >
-                      <img
+                      <Image
                         className="rounded-2xl object-cover h-[290px] w-[230px] max-md:h-[250px] max-md:w-[230px] animated"
-                        src={anime.poster || "/path/to/default-image.jpg"}
-                        alt={anime.id}
-                        draggable="false"
-                        onError={(e) =>
-                          (e.target.src = "/path/to/default-image.jpg")
-                        }
+                        src={anime.poster || "/icon.png"}
+                        alt={anime.name || "poster"}
+                        width={230}
+                        height={290}
+                        draggable={false}
                       />
                       <div className="absolute flex justify-center items-center h-full w-full top-0 group-hover:seasonCard transition-full rounded-xl" >
                       <FontAwesomeIcon className="text-3xl group-hover:opacity-100 opacity-0 transition-full" icon={faPlay} />

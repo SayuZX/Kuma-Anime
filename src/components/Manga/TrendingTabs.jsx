@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "../ui/button";
 import { Skeleton } from "../ui/skeleton";
 
@@ -19,11 +20,12 @@ export function TabsDemo({ data }) {
         <h1 className="grid place-items-center h-[50px] w-[50px] rounded-xl bg-input">
           {index + 1}
         </h1>
-        <img
+        <Image
           className="w-[70px] h-[100px] object-cover rounded-lg"
-          src={manga.image || "/path/to/default-image.jpg"}
-          alt={manga.title}
-          onError={(e) => (e.target.src = "/path/to/default-image.jpg")}
+          src={manga.image || "/manga-carousel.png"}
+          alt={manga.title || "cover"}
+          width={70}
+          height={100}
         />
         <div className="flex flex-col gap-2">
           <h1 className="text-[14px]">

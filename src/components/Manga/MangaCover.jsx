@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import Image from "next/image";
 import { Skeleton } from "../ui/skeleton";
 
 const AnimeCover = ({ posterSrc }) => {
@@ -14,9 +15,12 @@ const AnimeCover = ({ posterSrc }) => {
         <Skeleton className="w-full h-[300px] max-md:h-[200px] object-cover rounded-sm" />
       ) : (
         <>
-          <img
+          <Image
             className="w-full h-[300px] max-md:h-[200px] object-cover rounded-sm animated"
-            src={posterSrc}
+            src={posterSrc || "/manga-carousel.png"}
+            alt="cover"
+            width={1280}
+            height={300}
           />
           <div className="top-0 absolute w-full h-full custom-gradient z-50 animated" />
         </>

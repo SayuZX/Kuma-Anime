@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Image from "next/image";
 import Selector from "@/components/Select";
 import { Skeleton } from "../ui/skeleton";
 
@@ -59,10 +60,12 @@ const CharacterData = ({ data }) => {
                 className="flex flex-row animated justify-between bg-neutral-700/20 p-2 rounded-md box-shadow"
                 key={item.name.full}
               >
-                <img
+                <Image
                   className="object-cover h-[100px] w-[67px] rounded-md"
-                  src={item.image}
-                  alt={item.name}
+                  src={item.image || "/icon.png"}
+                  alt={item.name?.full || "character"}
+                  width={67}
+                  height={100}
                 />
                 <div className="flex flex-col justify-center gap-2 items-center max-md:text-[13px]">
                   <h1>{item.name.full}</h1>
@@ -70,10 +73,12 @@ const CharacterData = ({ data }) => {
                     ~ {" " + (voiceActor?.name.full || "??")}
                   </p>
                 </div>
-                <img
+                <Image
                   className="object-cover h-[100px] w-[67px] rounded-lg"
-                  src={voiceActor?.image || "/path/to/default-image.jpg"}
-                  alt=""
+                  src={voiceActor?.image || "/icon.png"}
+                  alt="voice actor"
+                  width={67}
+                  height={100}
                 />
               </div>
             );
