@@ -5,6 +5,7 @@ import HomeCarousel from "@/components/Manga/HomeCarousel";
 import ReusableCarousel from "@/components/Manga/ReusableCarousel";
 import MangaTable from "@/components/Manga/MangaTable";
 import ReusableStack from "@/components/Manga/ReusableCardStacks";
+import ContinueReading from "@/components/continue-reading-section";
 import { mangaDataCarousel, mangaData, moreMangaData } from "@/lib/fallbackData";
 import { readCache, writeCache } from "@/lib/clientCache";
 
@@ -61,6 +62,7 @@ const Manga = () => {
   return (
     <div className="flex flex-col gap-10 px-10 max-md:px-2 bg-custom">
       <HomeCarousel data={mangaList} />
+      <ContinueReading />
       <ReusableCarousel title={"Trending"} data={newestData} />
       <ReusableCarousel title={"Popular"} data={latestData} />
       <ReusableStack data={tableData} title={"Top Reads"} />

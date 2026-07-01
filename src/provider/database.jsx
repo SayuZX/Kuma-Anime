@@ -10,14 +10,27 @@ export default function DataProvider({ children }) {
   const [currentlyReading, setCurrentlyReading] = useState([]);
 
   useEffect(() => {
-    const watchingFromStorage =
-      JSON.parse(localStorage.getItem("currentlyWatching")) || [];
-    const readingFromStorage =
-      JSON.parse(localStorage.getItem("currentlyReading")) || [];
-
-    setCurrentlyWatching(watchingFromStorage);
-    setCurrentlyReading(readingFromStorage);
+    try {
+      setCurrentlyWatching(
+        JSON.parse(localStorage.getItem("currentlyWatching")) || []
+      );
+      setCurrentlyReading(
+        JSON.parse(localStorage.getItem("currentlyReading")) || []
+      );
+    } catch {
+      setCurrentlyWatching([]);
+      setCurrentlyReading([]);
+    }
   }, []);
+
+  const persist = (key, value, setter) => {
+    setter(value);
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch {
+      return;
+    }
+  };
 
   const addAnimeEpisode = (
     animeId,
@@ -29,7 +42,7 @@ export default function DataProvider({ children }) {
     currentProgress,
     totalProgress
   ) => {
-    const newEpisode = {
+    const entry = {
       animeId,
       animeTitle,
       episodeTitle,
@@ -39,26 +52,53 @@ export default function DataProvider({ children }) {
       currentProgress,
       totalProgress,
     };
-
-    const updatedWatching = currentlyWatching.map((anime) =>
-      anime.animeId === animeId ? newEpisode : anime
-    );
-
-    const isAlreadyWatching = updatedWatching.some(
-      (anime) => anime.animeId === animeId
-    );
-    const finalWatching = isAlreadyWatching
-      ? updatedWatching
-      : [...updatedWatching, newEpisode];
-
-    setCurrentlyWatching(finalWatching);
-    localStorage.setItem("currentlyWatching", JSON.stringify(finalWatching));
+    const rest = currentlyWatching.filter((a) => a.animeId !== animeId);
+    persist("currentlyWatching", [entry, ...rest], setCurrentlyWatching);
   };
+
+  const addMangaChapter = (
+    mangaId,
+    mangaTitle,
+    mangaImage,
+    chapterId,
+    chapterName,
+    currentChapter,
+    totalChapters
+  ) => {
+    const entry = {
+      mangaId,
+      mangaTitle,
+      mangaImage,
+      chapterId,
+      chapterName,
+      currentChapter,
+      totalChapters,
+    };
+    const rest = currentlyReading.filter((m) => m.mangaId !== mangaId);
+    persist("currentlyReading", [entry, ...rest], setCurrentlyReading);
+  };
+
+  const removeAnime = (animeId) =>
+    persist(
+      "currentlyWatching",
+      currentlyWatching.filter((a) => a.animeId !== animeId),
+      setCurrentlyWatching
+    );
+
+  const removeManga = (mangaId) =>
+    persist(
+      "currentlyReading",
+      currentlyReading.filter((m) => m.mangaId !== mangaId),
+      setCurrentlyReading
+    );
 
   const contextValue = {
     currentlyWatching,
     currentlyReading,
     addAnimeEpisode,
+    addMangaChapter,
+    removeAnime,
+    removeManga,
   };
 
   return (
