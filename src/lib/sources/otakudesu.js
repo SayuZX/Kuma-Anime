@@ -34,30 +34,20 @@ function groupQualities(qualities) {
 }
 
 const NON_EMBEDDABLE =
-  /mega\.nz|drive\.google\.com\/file|acefile|krakenfiles|zippyshare|mediafire/i;
+  /pixeldrain|mega\.nz|drive\.google\.com\/file|acefile|krakenfiles|zippyshare|mediafire/i;
 
 function isEmbeddable(url) {
   return url && !NON_EMBEDDABLE.test(url);
-}
-
-function normalizeStreamUrl(url) {
-  const u = String(url || "");
-  const px = u.match(/pixeldrain\.com\/u\/([a-zA-Z0-9]+)/i);
-  if (px) return `https://pixeldrain.com/api/file/${px[1]}`;
-  return u;
-}
-
-function isCleanVideo(url) {
-  return /pixeldrain\.com\/api\/file\/|\.(mp4|m3u8)(\?|$)/i.test(String(url || ""));
 }
 
 function groupAnimasuStreams(streams) {
   const groups = {};
   asArray(streams).forEach((s) => {
     const res = (String(s.name || "").match(/(\d{3,4}p)/) || [])[1] || "Default";
+    if (!isEmbeddable(s.url)) return;
     (groups[res] = groups[res] || []).push({
       name: s.name || res,
-      serverId: enc(normalizeStreamUrl(s.url)),
+      serverId: enc(s.url || ""),
     });
   });
   return Object.entries(groups).map(([resolution, servers]) => ({
@@ -155,14 +145,10 @@ const ANIMASU = {
       title: e.name,
     })),
   mapEpisode: (j) => {
-    const all = asArray(j?.streams).map((s) => ({
-      name: s.name,
-      url: normalizeStreamUrl(s.url),
-    }));
-    const clean = all.find((s) => isCleanVideo(s.url));
+    const all = asArray(j?.streams);
     const playable = all.find((s) => isEmbeddable(s.url));
     return {
-      embedUrl: (clean || playable || all[0])?.url || "",
+      embedUrl: playable?.url || "",
       qualities: groupAnimasuStreams(all),
     };
   },
