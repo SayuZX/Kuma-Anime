@@ -27,7 +27,7 @@ const StreamingPage = () => {
   const [episodesData, setEpisodesData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [episodeImages, setEpisodeImages] = useState({});
-  const [currentEpisode, setCurrentEpisode] = useState(1);
+  const [currentEpisode, setCurrentEpisode] = useState(null);
   const [episodeSrc, setEpisodeSrc] = useState(null);
   const [captionsData, setCaptionsData] = useState(null);
   const [episodeLoading, setEpisodeLoading] = useState(true);
