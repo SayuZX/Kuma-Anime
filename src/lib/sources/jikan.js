@@ -26,7 +26,7 @@ function shortDuration(d) {
   if (m) return `${m[1]}m`;
   const h = d.match(/(\d+)\s*hr/);
   if (h) return `${h[1]}h`;
-  return d.replace("per ep", "").trim() || "??";
+  return "??";
 }
 
 export function mapAnimeCard(a, rank) {
