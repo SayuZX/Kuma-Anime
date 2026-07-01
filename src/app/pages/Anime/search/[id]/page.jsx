@@ -92,7 +92,7 @@ const Search = () => {
         <Input
           handleCross={() => setSearchQuery("")}
           value={searchQuery}
-          onChange={() => setSearchQuery(event.target.value)}
+          onChange={(e) => setSearchQuery(e.target.value)}
           className="w-[180px] max-md:w-[150px] bg-input rounded-md"
           placeholder="Search..."
         />

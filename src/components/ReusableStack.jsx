@@ -5,6 +5,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
+import Image from "next/image";
 import React from "react";
 import { Skeleton } from "./ui/skeleton";
 
@@ -84,9 +85,12 @@ const ReusableStack = ({ data }) => {
                     key={idx}
                     className="flex flex-row gap-3 bg-neutral-600/20 animated hover:bg-indigo-400 transition-full rounded-lg p-3 box-shadow"
                   >
-                    <img
-                      className="xl:h-[100px] h-[70px] w-[100px] max-md:w-[70px] rounded-lg"
-                      src={dataItem.poster}
+                    <Image
+                      className="xl:h-[100px] h-[70px] w-[100px] max-md:w-[70px] rounded-lg object-cover"
+                      src={dataItem.poster || "/icon.png"}
+                      alt={dataItem.name || "poster"}
+                      width={100}
+                      height={100}
                     />
                     <div className="flex flex-col justify-center gap-2 w-full">
                       <h2>{formattedTitle}</h2>

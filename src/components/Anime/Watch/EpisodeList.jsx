@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -81,10 +82,12 @@ const EpisodeList = ({
                 <div className="absolute p-1 left-2 bottom-2 rounded-md text-white bg-muted">
                   EP {data.number}
                 </div>
-                <img
+                <Image
                   className="object-cover h-full w-[40%] rounded-l-md"
-                  src={data.image}
-                  alt={data.number}
+                  src={data.image || "/icon.png"}
+                  alt={"Episode " + data.number}
+                  width={160}
+                  height={100}
                 />
                 <div className="flex flex-col w-[60%] h-full justify-center text-left pl-3 gap-1">
                   <h1

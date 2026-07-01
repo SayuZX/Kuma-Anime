@@ -4,8 +4,9 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
+import Image from "next/image";
 import React, { useEffect, useState } from "react";
-import { Skeleton } from "./ui/skeleton"; 
+import { Skeleton } from "./ui/skeleton";
 
 const Top10AnimesTable = ({ data }) => {
   const MetaData = [{ title: "Today" }, { title: "Week" }, { title: "Month" }];
@@ -91,10 +92,12 @@ const Top10AnimesTable = ({ data }) => {
                 {data.rank.toString().padStart(2, "0")}
               </h1>
               <div className="flex flex-row gap-2">
-                <img
+                <Image
                   className="h-[100px] w-[70px] object-cover rounded-lg group-hover:blur-[3px] transition-full"
-                  src={data.poster}
-                  alt=""
+                  src={data.poster || "/icon.png"}
+                  alt={data.name || "poster"}
+                  width={70}
+                  height={100}
                 />
                 <div className="flex flex-col justify-center gap-2">
                   <h1 className="group-hover:text-indigo-300 transition-full">

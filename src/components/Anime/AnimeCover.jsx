@@ -1,4 +1,5 @@
 import React from 'react'
+import Image from 'next/image'
 import { Skeleton } from '../ui/skeleton'
 
 const AnimeCover = ({ posterSrc }) => {
@@ -10,9 +11,12 @@ const AnimeCover = ({ posterSrc }) => {
     )
   }
   return (
-    <img
+    <Image
         className="w-full h-[250px] object-cover rounded-sm animated"
         src={posterSrc}
+        alt="cover"
+        width={1280}
+        height={250}
       />
   )
 }

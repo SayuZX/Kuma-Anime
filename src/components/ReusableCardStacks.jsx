@@ -5,8 +5,9 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
+import Image from "next/image";
 import { Badge } from "./ui/badge";
-import { Skeleton } from "./ui/skeleton"; 
+import { Skeleton } from "./ui/skeleton";
 
 const ReusableCardStacks = ({ withGenres, genresData, data, title }) => {
   const isLoading = 
@@ -60,10 +61,12 @@ const ReusableCardStacks = ({ withGenres, genresData, data, title }) => {
               className="flex flex-col gap-1 group"
             >
               <div className="relative flex items-center justify-center w-[173px] max-sm:w-[150px]">
-                <img
+                <Image
                   className="w-[173px] h-[244px] object-cover rounded-lg max-sm:h-[220px]"
-                  src={anime.poster}
-                  alt=""
+                  src={anime.poster || "/icon.png"}
+                  alt={anime.name || "poster"}
+                  width={173}
+                  height={244}
                 />
                 <div className="absolute flex justify-center items-center h-full w-full top-0 group-hover:seasonCard transition-full rounded-xl">
                   <FontAwesomeIcon

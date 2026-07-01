@@ -9,6 +9,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "../ui/button";
 import { Skeleton } from "../ui/skeleton";
 
@@ -31,10 +32,12 @@ const HomeCarousel = ({ data }) => {
                   <div className="absolute inset-0 custom-blur"></div>
                   <div className="absolute top-0 h-full w-full flex flex-row gap-10 max-md:gap-5 max-md:p-2 p-10">
                     <div className="relative flex items-center flex-shrink-0">
-                      <img
+                      <Image
                         className="h-[300px] w-[220px] object-cover rounded-lg max-md:h-[150px] max-md:w-[100px]"
-                        src={item.image}
+                        src={item.image || "/manga-carousel.png"}
                         alt={item.title || "Image"}
+                        width={220}
+                        height={300}
                       />
                       <p className="absolute top-4 left-1 p-2 px-3 max-md:text-[10px] max-md:px-1 max-md:p-0 max-md:top-auto max-md:mb-[120px] rounded-md text-sm bg-white text-black">
                         <FontAwesomeIcon icon={faFireAlt} /> {item.view}
@@ -63,7 +66,7 @@ const HomeCarousel = ({ data }) => {
                           : item.description}
                       </p>
                       <div className="flex flex-row gap-5 items-center max-md:translate-x-[-20px] max-md:gap-0">
-                        <Link href={`/pages/Manga/read/${item.id}/chapter-1`}>
+                        <Link href={`/pages/Manga/details/${item.id}`}>
                           <Button className="flex flex-row gap-1 max-md:scale-75">
                             <FontAwesomeIcon icon={faBook} /> Read Now
                           </Button>

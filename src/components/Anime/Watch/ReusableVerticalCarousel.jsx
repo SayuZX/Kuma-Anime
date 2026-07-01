@@ -8,6 +8,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
+import Image from "next/image";
 import React from "react";
 
 const VerticalReusableCarousel = ({ data, title }) => {
@@ -20,10 +21,12 @@ const VerticalReusableCarousel = ({ data, title }) => {
       <div className="flex flex-col gap-2">
         {data.map((anime) => (
           <Link key={anime.id} href={`/pages/Anime/watch/${anime.id}`} className="group flex flex-row gap-5 p-1 bg-neutral-700/20 hover:bg-indigo-400 hover:text-white transition-full rounded-md items-center">
-            <img
+            <Image
               className="w-[69px] h-[96px] object-cover rounded-lg"
-              src={anime.poster}
-              alt=""
+              src={anime.poster || "/icon.png"}
+              alt={anime.name || "poster"}
+              width={69}
+              height={96}
             />
             <div className="flex flex-col justify-center gap-3 w-full">
               <h2 className="group-hover:text-white">

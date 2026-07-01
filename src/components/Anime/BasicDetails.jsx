@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import Image from "next/image";
 import React from "react";
 import { Badge } from "../ui/badge";
 import { Separator } from "../ui/separator";
@@ -34,10 +35,12 @@ const BasicDetails = ({ data, page = "Details", className }) => {
     >
       <div className="flex flex-col gap-2 w-[180px] max-md:w-[130px] max-md:text-[12px]">
         <div className="relative">
-          <img
+          <Image
             className="object-cover max-md:h-[150px] w-[250px] rounded-md animated"
-            src={data.info.poster}
-            alt={data.info.id}
+            src={data.info.poster || "/icon.png"}
+            alt={data.info.name || "poster"}
+            width={250}
+            height={350}
           />
           <p className="absolute top-1 left-1 px-3 py-1 rounded-md bg-black/70">
             {data.info.stats.rating}

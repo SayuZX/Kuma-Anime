@@ -7,6 +7,7 @@ import {
   faFireAlt,
 } from "@fortawesome/free-solid-svg-icons";
 import Link from "next/link";
+import Image from "next/image";
 import { Badge } from "../ui/badge";
 import { Separator } from "../ui/separator";
 import { Skeleton } from "../ui/skeleton";
@@ -20,14 +21,16 @@ const BasicDetails = ({ data, id }) => {
     <>
       <div className="flex flex-row max-md:flex-col max-md:items-center bg-neutral-700/30 rounded-md animated ">
         <div className="flex flex-col gap-1 p-5 max-md:p-2">
-          <img
-            className="w-[170px] h-[250px] max-md:w-[170px] rounded-xl"
-            src={data.imageUrl}
-            alt={data.title}
+          <Image
+            className="w-[170px] h-[250px] max-md:w-[170px] rounded-xl object-cover"
+            src={data.imageUrl || "/manga-carousel.png"}
+            alt={data.title || "cover"}
+            width={170}
+            height={250}
           />
           <Link
             className="w-full max-md:hidden"
-            href={`/pages/Manga/read/${id}/chapter-1`}
+            href={`/pages/Manga/read/${id}/${data.chapterList?.[0]?.id || ""}`}
           >
             <Button className="w-full">Read Now</Button>
           </Link>
@@ -70,7 +73,7 @@ const BasicDetails = ({ data, id }) => {
           </div>
           <Link
             className="hidden max-md:flex flex-row gap-3 justify-center relative left-[5%] w-[90%] mt-1 pt-5"
-            href={`/page/Manga/read/${data.id}/chapter-1`}
+            href={`/pages/Manga/read/${id}/${data.chapterList?.[0]?.id || ""}`}
           >
             <Button className="flex flex-row gap-3 items-center">
               {" "}

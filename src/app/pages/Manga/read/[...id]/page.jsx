@@ -6,23 +6,39 @@ import React, { useEffect, useState } from "react";
 import Breadcrumb from "@/components/Manga/BreadCrumb";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLeftLong, faRightLong } from "@fortawesome/free-solid-svg-icons";
+import { useUserData } from "@/provider/database";
 
 const ReadPage = ({ params }) => {
   const [mangaID, setMangaID] = useState(params.id[0]);
   const [chapterID, setChapterID] = useState(params.id[1]);
   const [chapterImages, setChapterImages] = useState(null);
   const [chapterData, setChapterData] = useState(null);
+  const { addMangaChapter } = useUserData();
 
   useEffect(() => {
     const loadData = async () => {
       setChapterImages(null);
       const data = await FetchMangaChaptersSrc(mangaID, chapterID);
       setChapterData(data);
-      console.log(data);
       setChapterImages(data.images);
     };
     loadData();
   }, [params.id, mangaID, chapterID]);
+
+  useEffect(() => {
+    const list = chapterData?.chapterListIds;
+    if (!list || list.length === 0) return;
+    const index = list.findIndex((chapter) => chapter.id === chapterID);
+    addMangaChapter(
+      mangaID,
+      chapterData.title,
+      chapterData.images?.[0]?.image || "/manga-carousel.png",
+      chapterID,
+      chapterData.currentChapter,
+      index >= 0 ? index + 1 : 1,
+      list.length
+    );
+  }, [chapterData, chapterID, mangaID]);
 
   useEffect(() => {
     window.scrollTo({
