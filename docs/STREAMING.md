@@ -1,72 +1,48 @@
-# External Streaming Provider (optional)
+# Anime Streaming (Otakudesu — Sub Indo)
 
-Kuma Anime is **metadata-first**. The public APIs it uses (Jikan, AniList,
-Kitsu, MangaDex) provide titles, images, descriptions, characters, episodes and
-schedules — but **no video**. The watch page therefore shows an "unavailable"
-notice unless you connect an external streaming provider.
+Metadata (titles, images, characters, schedules) comes from official free APIs
+(Jikan, AniList, Kitsu). Those APIs do **not** serve video. For actual playback
+with Indonesian subtitles, the watch page uses a
+[wajik-anime-api](https://github.com/wajik45/wajik-anime-api) compatible
+instance that scrapes **Otakudesu**.
 
-This document describes the optional "provider slot". It is **off by default**
-and the app runs perfectly without it.
+## How it works
 
-## ⚠️ Legal warning
+On the watch page:
 
-There is **no official, free API that streams anime with Indonesian
-subtitles**. The only sources are unofficial scrapers of fansub/piracy sites
-(Otakudesu, Samehadaku, Kuramanime, and similar) or community APIs that wrap
-them. Using them:
+1. The anime title (from Jikan/AniList) is searched on Otakudesu
+   (`/otakudesu/search?q=`), best-matched with Jaro–Winkler.
+2. Its episode list is fetched (`/otakudesu/anime/{animeId}`).
+3. When you pick an episode, its embed is fetched
+   (`/otakudesu/episode/{episodeId}` → `defaultStreamingUrl`) and rendered in an
+   iframe. Otakudesu streams are Indonesian hard-sub embeds.
 
-- may be **illegal** in your jurisdiction (copyright infringement),
-- is **fragile** — it breaks whenever the source site changes,
-- must be **self-hosted by you** — this project ships no such server,
-- is done **entirely at your own risk and responsibility**.
+Adapter: `src/lib/sources/otakudesu.js`. It is the only integration point — if
+your instance differs, edit that one file.
 
-Kuma Anime does not host, bundle, endorse or provide any such API. Enabling this
-slot is your decision as the operator.
+## Configuration
 
-## How to enable
-
-1. Deploy your own streaming API (for example one of the open-source
-   `*-anime-api` projects) somewhere you control.
-2. Set the base URL in `.env.local`:
-
-   ```
-   NEXT_PUBLIC_STREAM_API_URL=https://your-stream-api.example.com
-   ```
-
-3. Restart / redeploy. The watch page will now request sources from it.
-
-## Request contract
-
-The adapter (`src/lib/sources/streamProvider.js`) calls:
+It defaults to the public demo `https://wajik-anime-api.vercel.app`, so it works
+out of the box. Public demos are shared and can be rate-limited or go offline.
+For reliability, deploy your own instance and point to it:
 
 ```
-GET {NEXT_PUBLIC_STREAM_API_URL}/watch?episodeId={id}&server={server}&category={sub|dub}
+NEXT_PUBLIC_STREAM_API_URL=https://your-wajik-anime-api.example.com
 ```
 
-If your API uses different paths or parameters, edit that one file — it is the
-only integration point.
+`wajik-anime-api` has a one-click deploy on its repository (Vercel/Render) — no
+server administration or coding required, just set the env var above to the URL
+you get.
 
-## Expected response
+## ⚠️ Legal note
 
-JSON in (or close to) this shape. The adapter is defensive and also accepts
-`file`/`src` for source urls and `subtitles`/`captions` for tracks.
+Otakudesu is an Indonesian fansub site. Scraping it is a legal grey area and the
+scraper can break whenever the source site changes. This project ships no such
+server and does not host any video. Enabling and hosting a provider is the
+operator's decision and responsibility.
 
-```json
-{
-  "sources": [
-    { "url": "https://.../master.m3u8", "quality": "auto", "isM3U8": true }
-  ],
-  "tracks": [
-    { "file": "https://.../id.vtt", "label": "Indonesian", "kind": "captions" },
-    { "file": "https://.../en.vtt", "label": "English", "kind": "captions" }
-  ]
-}
-```
+## Graceful fallback
 
-## Subtitle priority (Sub Indo first)
-
-Tracks are reordered automatically to **Indonesian → English → other**, and the
-top one is marked as the default caption, so an Indonesian subtitle is
-auto-selected when present. Users can still switch subtitle, server and category
-in the player / server selector; their choice is saved in `localStorage`
-(`streamPrefs`).
+If the provider returns nothing (down, rate-limited, or no match), the player
+shows a clear "Stream tidak tersedia" notice and the rest of the page (info,
+characters, trailer, schedule) keeps working.
