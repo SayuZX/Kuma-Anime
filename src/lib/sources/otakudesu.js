@@ -40,6 +40,8 @@ function isEmbeddable(url) {
   return url && !NON_EMBEDDABLE.test(url);
 }
 
+const DEPRIORITIZE = /short\.ink/i;
+
 function groupAnimasuStreams(streams) {
   const groups = {};
   asArray(streams).forEach((s) => {
@@ -145,9 +147,10 @@ const ANIMASU = {
     })),
   mapEpisode: (j) => {
     const all = asArray(j?.streams);
-    const playable = all.find((s) => isEmbeddable(s.url));
+    const good = all.filter((s) => isEmbeddable(s.url));
+    const pick = good.find((s) => !DEPRIORITIZE.test(s.url)) || good[0] || all[0];
     return {
-      embedUrl: (playable || all[0])?.url || "",
+      embedUrl: pick?.url || "",
       qualities: groupAnimasuStreams(all),
     };
   },
