@@ -44,7 +44,6 @@ function groupAnimasuStreams(streams) {
   const groups = {};
   asArray(streams).forEach((s) => {
     const res = (String(s.name || "").match(/(\d{3,4}p)/) || [])[1] || "Default";
-    if (!isEmbeddable(s.url)) return;
     (groups[res] = groups[res] || []).push({
       name: s.name || res,
       serverId: enc(s.url || ""),
@@ -148,7 +147,7 @@ const ANIMASU = {
     const all = asArray(j?.streams);
     const playable = all.find((s) => isEmbeddable(s.url));
     return {
-      embedUrl: playable?.url || "",
+      embedUrl: (playable || all[0])?.url || "",
       qualities: groupAnimasuStreams(all),
     };
   },
