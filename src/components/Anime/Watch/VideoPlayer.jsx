@@ -63,7 +63,7 @@ const VideoPlayer = ({
         <div className="flex flex-col gap-2">
           <p className="text-lg font-semibold">Stream tidak tersedia</p>
           <p className="text-sm text-muted-foreground max-w-md">
-            Sumber video eksternal belum dikonfigurasi atau episode ini tidak
+            episode ini tidak
             tersedia. Kamu tetap bisa melihat info, karakter, dan trailer anime
             ini.
           </p>
@@ -84,7 +84,8 @@ const VideoPlayer = ({
             `Episode ${currentEpisode}`
           }
           className="w-full h-full rounded-3xl border-0"
-          allow="autoplay; fullscreen; encrypted-media"
+          allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+          allowFullScreen
           referrerPolicy="no-referrer"
         />
       </div>
