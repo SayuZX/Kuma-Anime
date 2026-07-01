@@ -43,6 +43,21 @@ const VideoPlayer = ({
     );
   }
 
+  if (!episodeSrc) {
+    return (
+      <div className="h-full max-md:h-auto max-md:aspect-video w-[72%] max-md:w-full rounded-3xl flex items-center justify-center bg-neutral-800/40 border border-neutral-700/40 p-6 text-center">
+        <div className="flex flex-col gap-2">
+          <p className="text-lg font-semibold">Stream tidak tersedia</p>
+          <p className="text-sm text-muted-foreground max-w-md">
+            Sumber video eksternal belum dikonfigurasi atau episode ini tidak
+            tersedia. Kamu tetap bisa melihat info, karakter, dan trailer anime
+            ini.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-full max-md:h-auto max-md:aspect-video w-[72%] max-md:w-full rounded-3xl">
       <MediaPlayer

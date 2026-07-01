@@ -13,6 +13,7 @@ import AnimeRelation from "@/components/Anime/Watch/AnimeRelations";
 import ReusableVerticalCarousel from "@/components/Anime/Watch/ReusableVerticalCarousel";
 import ServerSelector from "@/components/Anime/Watch/ServerSelector";
 import { useUserData } from "@/provider/database";
+import { getStreamPrefs, setStreamPrefs } from "@/lib/streamPrefs";
 import {
   FetchAnimeByAniwatchID,
   FetchEpisodesByMappedID,
@@ -30,8 +31,12 @@ const StreamingPage = () => {
   const [episodeSrc, setEpisodeSrc] = useState(null);
   const [captionsData, setCaptionsData] = useState(null);
   const [episodeLoading, setEpisodeLoading] = useState(true);
-  const [activeServer, setActiveServer] = useState("VidStream");
-  const [episodeType, setEpisodeType] = useState("sub");
+  const [activeServer, setActiveServer] = useState(
+    () => getStreamPrefs().server || "vidstream"
+  );
+  const [episodeType, setEpisodeType] = useState(
+    () => getStreamPrefs().category || "sub"
+  );
   const [lastSavedTime, setLastSavedTime] = useState(0); 
   const { addAnimeEpisode, currentlyWatching } = useUserData();
   const [episodeDuration, setEpisodeDuration] = useState(1440);
@@ -120,6 +125,7 @@ const StreamingPage = () => {
   const handleServer = (type, server) => {
     setEpisodeType(type);
     setActiveServer(server);
+    setStreamPrefs({ category: type, server });
   };
 
   const handleTimeUpdate = (event) => {
