@@ -4,8 +4,18 @@ Metadata (titles, images, characters, schedules) comes from official free APIs
 (Jikan, AniList, Kitsu). Those APIs do **not** serve video. For playback with
 Indonesian subtitles, the watch page uses an Otakudesu-scraper API.
 
-It defaults to the public **Sanka Vollerei** instance
-(`https://www.sankavollerei.web.id/anime`), so streaming works out of the box.
+By default it tries several public providers in order and uses the first that
+returns episodes for a title:
+
+1. Sanka Vollerei — `https://www.sankavollerei.web.id/anime`
+2. onepunya — `https://onepunya.qzz.io/v1`
+3. wajik-anime-api — `https://wajik-anime-api.vercel.app`
+
+If one fails at any step (e.g. Sanka Vollerei 500s on a movie), the whole
+search → episodes flow retries on the next provider. Add or reorder providers
+in the `PROVIDERS` array in `src/lib/sources/otakudesu.js`; each entry has its
+own paths and response mappers. Setting `NEXT_PUBLIC_STREAM_API_URL` overrides
+everything with a single Sanka-shaped custom instance.
 
 ## How it works
 

@@ -2,41 +2,98 @@ import { fetchJson } from "../http";
 import { asArray } from "../normalize";
 import { jaroWinklerDistance } from "@/hooks/jaro-winkler";
 
+const enc = encodeURIComponent;
+
 const ENV_BASE =
   (typeof process !== "undefined" &&
     process.env &&
     process.env.NEXT_PUBLIC_STREAM_API_URL) ||
   "";
 
+function flattenQualities(qualities) {
+  const servers = [];
+  asArray(qualities).forEach((quality) => {
+    asArray(quality.serverList).forEach((server) => {
+      servers.push({
+        quality: quality.title,
+        name: server.title,
+        serverId: server.serverId,
+      });
+    });
+  });
+  return servers;
+}
+
+const OTAKU_SHAPE = {
+  mapSearch: (j) =>
+    asArray(j?.data?.animeList).map((a) => ({
+      animeId: a.animeId,
+      title: a.title,
+    })),
+  mapEpisodes: (j) =>
+    asArray(j?.data?.episodeList).map((e) => ({
+      episodeId: e.episodeId,
+      title: e.title,
+    })),
+  mapEpisode: (j) => ({
+    embedUrl: j?.data?.defaultStreamingUrl || "",
+    servers: flattenQualities(j?.data?.server?.qualities),
+  }),
+  mapServer: (j) => j?.data?.url || "",
+};
+
+const SANKA = {
+  name: "sanka",
+  base: "https://www.sankavollerei.web.id/anime",
+  searchPath: (q) => `/search/${enc(q)}`,
+  detailPath: (s) => `/anime/${s}`,
+  episodePath: (s) => `/episode/${s}`,
+  serverPath: (id) => `/server/${id}`,
+  ...OTAKU_SHAPE,
+};
+
+const WAJIK = {
+  name: "wajik",
+  base: "https://wajik-anime-api.vercel.app",
+  searchPath: (q) => `/otakudesu/search?q=${enc(q)}`,
+  detailPath: (s) => `/otakudesu/anime/${s}`,
+  episodePath: (s) => `/otakudesu/episode/${s}`,
+  serverPath: (id) => `/otakudesu/server/${id}`,
+  ...OTAKU_SHAPE,
+};
+
+const ONEPUNYA = {
+  name: "onepunya",
+  base: "https://onepunya.qzz.io",
+  searchPath: (q) => `/v1/search/${enc(q)}`,
+  detailPath: (s) => `/v1/anime/${s}`,
+  episodePath: (s) => `/v1/episode/${s}`,
+  serverPath: null,
+  mapSearch: (j) => {
+    const root = j?.data ?? j?.results ?? j;
+    const list = Array.isArray(root) ? root : asArray(root?.anime ?? root?.animeList);
+    return list.map((a) => ({ animeId: a.slug ?? a.animeId, title: a.title }));
+  },
+  mapEpisodes: (j) => {
+    const d = j?.data ?? j;
+    return asArray(d?.episode_lists ?? d?.episodes ?? d?.episodeList).map((e) => ({
+      episodeId: e.slug ?? e.episodeId,
+      title: e.episode ?? e.title,
+    }));
+  },
+  mapEpisode: (j) => {
+    const d = j?.data ?? j;
+    return {
+      embedUrl: d?.stream_url ?? d?.streaming_url ?? d?.defaultStreamingUrl ?? "",
+      servers: [],
+    };
+  },
+  mapServer: () => "",
+};
+
 const PROVIDERS = ENV_BASE
-  ? [
-      {
-        name: "custom",
-        base: ENV_BASE.replace(/\/$/, ""),
-        search: (q) => `/search/${encodeURIComponent(q)}`,
-        detail: (id) => `/anime/${id}`,
-        episode: (id) => `/episode/${id}`,
-        server: (id) => `/server/${id}`,
-      },
-    ]
-  : [
-      {
-        name: "sanka",
-        base: "https://www.sankavollerei.web.id/anime",
-        search: (q) => `/search/${encodeURIComponent(q)}`,
-        detail: (id) => `/anime/${id}`,
-        episode: (id) => `/episode/${id}`,
-        server: (id) => `/server/${id}`,
-      },
-      {
-        name: "wajik",
-        base: "https://wajik-anime-api.vercel.app",
-        search: (q) => `/otakudesu/search?q=${encodeURIComponent(q)}`,
-        detail: (id) => `/otakudesu/anime/${id}`,
-        episode: (id) => `/otakudesu/episode/${id}`,
-        server: (id) => `/otakudesu/server/${id}`,
-      },
-    ];
+  ? [{ ...SANKA, name: "custom", base: ENV_BASE.replace(/\/$/, "") }]
+  : [SANKA, ONEPUNYA, WAJIK];
 
 function providerByName(name) {
   return PROVIDERS.find((p) => p.name === name) || PROVIDERS[0];
@@ -50,14 +107,14 @@ function splitTag(tagged) {
 }
 
 async function callJson(url) {
-  const data = await fetchJson(url, {
+  const j = await fetchJson(url, {
     where: "stream",
     timeout: 15000,
     retries: 1,
     cacheTtl: 5 * 60 * 1000,
   });
-  if (!data || (data.statusCode && data.statusCode >= 400)) return null;
-  return data.data ?? null;
+  if (!j || (j.statusCode && j.statusCode >= 400)) return null;
+  return j;
 }
 
 function sanitizeQuery(title) {
@@ -82,8 +139,8 @@ function queryVariants(title) {
 
 async function searchOne(provider, title, norm) {
   for (const query of queryVariants(title)) {
-    const data = await callJson(provider.base + provider.search(query));
-    const list = asArray(data?.animeList);
+    const j = await callJson(provider.base + provider.searchPath(query));
+    const list = provider.mapSearch(j).filter((a) => a.animeId);
     if (!list.length) continue;
     let best = list[0];
     let score = -1;
@@ -103,8 +160,8 @@ async function searchOne(provider, title, norm) {
 }
 
 async function episodesOne(provider, animeId, poster) {
-  const data = await callJson(provider.base + provider.detail(animeId));
-  const eps = asArray(data?.episodeList);
+  const j = await callJson(provider.base + provider.detailPath(animeId));
+  const eps = provider.mapEpisodes(j).filter((e) => e.episodeId);
   return eps
     .slice()
     .reverse()
@@ -130,23 +187,21 @@ export async function getAnimeEpisodes(title, poster = "") {
 
 export async function getEpisodeEmbed(taggedEpisodeId) {
   const { provider, id } = splitTag(taggedEpisodeId);
-  const data = await callJson(provider.base + provider.episode(id));
-  if (!data) return { embedUrl: "", servers: [] };
-  const servers = [];
-  asArray(data.server?.qualities).forEach((quality) => {
-    asArray(quality.serverList).forEach((server) => {
-      servers.push({
-        quality: quality.title,
-        name: server.title,
-        serverId: `${provider.name}:${server.serverId}`,
-      });
-    });
-  });
-  return { embedUrl: data.defaultStreamingUrl || "", servers };
+  const j = await callJson(provider.base + provider.episodePath(id));
+  if (!j) return { embedUrl: "", servers: [] };
+  const { embedUrl, servers } = provider.mapEpisode(j);
+  return {
+    embedUrl,
+    servers: asArray(servers).map((s) => ({
+      ...s,
+      serverId: `${provider.name}:${s.serverId}`,
+    })),
+  };
 }
 
 export async function getServerEmbed(taggedServerId) {
   const { provider, id } = splitTag(taggedServerId);
-  const data = await callJson(provider.base + provider.server(id));
-  return data?.url || "";
+  if (!provider.serverPath) return "";
+  const j = await callJson(provider.base + provider.serverPath(id));
+  return provider.mapServer(j);
 }
