@@ -112,11 +112,19 @@ export async function getAnimeById(id) {
   return null;
 }
 
-export async function searchAnime(query) {
+export async function searchAnime(query, page = 1) {
   return tryChain("search", [
-    { name: "jikan", fn: () => jikan.searchAnime(query) },
-    { name: "anilist", fn: () => anilist.searchAnime(query) },
-    { name: "kitsu", fn: () => kitsu.searchAnime(query) },
+    { name: "jikan", fn: () => jikan.searchAnime(query, page) },
+    { name: "anilist", fn: () => anilist.searchAnime(query, 24, page) },
+    { name: "kitsu", fn: () => kitsu.searchAnime(query, 24, page) },
+  ]);
+}
+
+export async function discoverAnime(genre, page = 1) {
+  return tryChain("discover", [
+    { name: "jikan", fn: () => jikan.discover(genre, page) },
+    { name: "anilist", fn: () => anilist.listBySort("POPULARITY_DESC", 24, page) },
+    { name: "kitsu", fn: () => kitsu.listPopular(24) },
   ]);
 }
 

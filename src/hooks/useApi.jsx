@@ -1,6 +1,7 @@
 import {
   getAnimeById,
   searchAnime as searchAnimeSource,
+  discoverAnime as discoverAnimeSource,
   getSchedule,
 } from "@/lib/anime";
 import {
@@ -81,16 +82,17 @@ export const FetchEpisodeLinksByMappedID = async () => ({
   tracks: [],
 });
 
-export const SearchAniWatch = async (query) => {
+export const SearchAniWatch = async (query, page = 1) => {
   const q = sanitizeQuery(query);
   if (!q) return [];
-  return searchAnimeSource(q);
+  return searchAnimeSource(q, page);
 };
 
-export const AdvancedSearch = async (query, genre) => {
-  const q = sanitizeQuery(query) || sanitizeQuery(genre) || "";
-  if (!q) return [];
-  return searchAnimeSource(q);
+export const AdvancedSearch = async (query, genre, ...filters) => {
+  const page = Number(filters[13]) || 1;
+  const q = sanitizeQuery(query);
+  if (q) return searchAnimeSource(q, page);
+  return discoverAnimeSource(sanitizeQuery(genre), page);
 };
 
 export const FetchEstimatedSchedule = async (year, month, day) => {

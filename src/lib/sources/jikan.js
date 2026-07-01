@@ -82,9 +82,9 @@ export async function seasonUpcoming(limit = 16) {
   return mapList(data);
 }
 
-export async function searchAnime(query, params = "") {
+export async function searchAnime(query, page = 1) {
   const data = await jikanGet(
-    `/anime?q=${encodeURIComponent(query)}&limit=24&sfw=true&order_by=members&sort=desc${params}`
+    `/anime?q=${encodeURIComponent(query)}&limit=24&page=${page}&sfw=true&order_by=members&sort=desc`
   );
   return mapList(data);
 }
@@ -94,6 +94,33 @@ export async function genres() {
   return asArray(data?.data)
     .map((g) => g.name)
     .filter(Boolean);
+}
+
+let genreMapPromise = null;
+
+async function genreMap() {
+  if (!genreMapPromise) {
+    genreMapPromise = jikanGet(`/genres/anime`, { cacheTtl: 24 * 3600 * 1000 })
+      .then((data) => {
+        const map = {};
+        asArray(data?.data).forEach((g) => {
+          if (g.name) map[g.name.toLowerCase()] = g.mal_id;
+        });
+        return map;
+      })
+      .catch(() => ({}));
+  }
+  return genreMapPromise;
+}
+
+export async function discover(genre, page = 1) {
+  const map = await genreMap();
+  const id = genre ? map[String(genre).toLowerCase()] : null;
+  const path = id
+    ? `/anime?genres=${id}&page=${page}&limit=24&order_by=members&sort=desc&sfw=true`
+    : `/top/anime?filter=bypopularity&page=${page}&limit=24`;
+  const data = await jikanGet(path);
+  return mapList(data);
 }
 
 export async function animeFull(id) {
