@@ -43,7 +43,8 @@ export default function BigCarousel({ data }) {
                 alt={item.name || "Cover Image"}
                 width={1280}
                 height={400}
-                priority={index === 0}
+                loading={index === 0 ? "eager" : "lazy"}
+                sizes="100vw"
                 className="w-full h-[400px] object-cover max-md:h-[300px]"
               />
               <div className="absolute inset-0 custom-gradient"></div>

@@ -44,6 +44,7 @@ export default function Component() {
                 width={800}
                 height={600}
                 priority
+                sizes="(max-width: 768px) 100vw, 800px"
                 alt="Anime hero image"
                 className="mx-auto aspect-video overflow-hidden rounded-xl object-cover"
               />
