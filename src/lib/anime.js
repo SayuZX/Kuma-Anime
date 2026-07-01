@@ -72,7 +72,7 @@ export async function getHomePage() {
   return {
     spotlightAnimes: spotlight,
     trendingAnimes: today,
-    latestEpisodeAnimes: airing.slice(10, 24).length ? airing.slice(10, 24) : airing,
+    latestEpisodeAnimes: airing,
     topUpcomingAnimes: upcoming,
     topAiringAnimes: airing,
     mostPopularAnimes: popular,
