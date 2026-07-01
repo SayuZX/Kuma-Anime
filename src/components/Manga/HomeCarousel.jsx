@@ -63,7 +63,7 @@ const HomeCarousel = ({ data }) => {
                           : item.description}
                       </p>
                       <div className="flex flex-row gap-5 items-center max-md:translate-x-[-20px] max-md:gap-0">
-                        <Link href={`/pages/Manga/read/${item.id}/chapter-1`}>
+                        <Link href={`/pages/Manga/details/${item.id}`}>
                           <Button className="flex flex-row gap-1 max-md:scale-75">
                             <FontAwesomeIcon icon={faBook} /> Read Now
                           </Button>

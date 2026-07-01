@@ -27,7 +27,7 @@ const BasicDetails = ({ data, id }) => {
           />
           <Link
             className="w-full max-md:hidden"
-            href={`/pages/Manga/read/${id}/chapter-1`}
+            href={`/pages/Manga/read/${id}/${data.chapterList?.[0]?.id || ""}`}
           >
             <Button className="w-full">Read Now</Button>
           </Link>
@@ -70,7 +70,7 @@ const BasicDetails = ({ data, id }) => {
           </div>
           <Link
             className="hidden max-md:flex flex-row gap-3 justify-center relative left-[5%] w-[90%] mt-1 pt-5"
-            href={`/page/Manga/read/${data.id}/chapter-1`}
+            href={`/pages/Manga/read/${id}/${data.chapterList?.[0]?.id || ""}`}
           >
             <Button className="flex flex-row gap-3 items-center">
               {" "}
