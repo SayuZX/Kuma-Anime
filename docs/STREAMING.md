@@ -8,8 +8,7 @@ By default it tries several public providers in order and uses the first that
 returns episodes for a title:
 
 1. Sanka Vollerei — `https://www.sankavollerei.web.id/anime`
-2. onepunya — `https://onepunya.qzz.io/v1`
-3. wajik-anime-api — `https://wajik-anime-api.vercel.app`
+2. wajik-anime-api — `https://wajik-anime-api.vercel.app`
 
 If one fails at any step (e.g. Sanka Vollerei 500s on a movie), the whole
 search → episodes flow retries on the next provider. Add or reorder providers

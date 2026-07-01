@@ -60,38 +60,9 @@ const WAJIK = {
   ...OTAKU_SHAPE,
 };
 
-const ONEPUNYA = {
-  name: "onepunya",
-  base: "https://onepunya.qzz.io",
-  searchPath: (q) => `/v1/search/${enc(q)}`,
-  detailPath: (s) => `/v1/anime/${s}`,
-  episodePath: (s) => `/v1/episode/${s}`,
-  serverPath: null,
-  mapSearch: (j) => {
-    const root = j?.data ?? j?.results ?? j;
-    const list = Array.isArray(root) ? root : asArray(root?.anime ?? root?.animeList);
-    return list.map((a) => ({ animeId: a.slug ?? a.animeId, title: a.title }));
-  },
-  mapEpisodes: (j) => {
-    const d = j?.data ?? j;
-    return asArray(d?.episode_lists ?? d?.episodes ?? d?.episodeList).map((e) => ({
-      episodeId: e.slug ?? e.episodeId,
-      title: e.episode ?? e.title,
-    }));
-  },
-  mapEpisode: (j) => {
-    const d = j?.data ?? j;
-    return {
-      embedUrl: d?.stream_url ?? d?.streaming_url ?? d?.defaultStreamingUrl ?? "",
-      qualities: [],
-    };
-  },
-  mapServer: () => "",
-};
-
 const PROVIDERS = ENV_BASE
   ? [{ ...SANKA, name: "custom", base: ENV_BASE.replace(/\/$/, "") }]
-  : [SANKA, ONEPUNYA, WAJIK];
+  : [SANKA, WAJIK];
 
 function providerByName(name) {
   return PROVIDERS.find((p) => p.name === name) || PROVIDERS[0];
