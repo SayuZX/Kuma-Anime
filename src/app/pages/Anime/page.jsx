@@ -9,6 +9,9 @@ import TopAnimesTable from "@/components/TopAnimesTable.jsx";
 import ContinueWatching from "@/components/continue-watching-section.jsx";
 import { fetchHomePage } from "@/hooks/ApiMapper.jsx";
 import { animeData } from "../../../lib/fallbackData.jsx";
+import { readCache, writeCache } from "@/lib/clientCache";
+
+const CACHE_KEY = "home:anime";
 
 const page = () => {
   const [data, setData] = useState(null);
@@ -21,22 +24,32 @@ const page = () => {
   const [genreData, setGenreData] = useState(null);
 
   useEffect(() => {
+    const apply = (d) => {
+      if (!d) return;
+      setData(d.spotlightAnimes);
+      setTop10AnimesData(d.top10Animes);
+      setTrendingData(d.top10Animes?.today);
+      setPopularData(d.top10Animes?.month);
+      setTableData(d.topAiringAnimes);
+      setCardStackData(d.latestEpisodeAnimes);
+      setGenreData(d.genres);
+      setUpcomingAnimesData(d.topUpcomingAnimes);
+    };
+
+    const cached = readCache(CACHE_KEY);
+    if (cached) apply(cached);
+
     const loadData = async () => {
-      const data = await fetchHomePage();
-      setData(data.spotlightAnimes);
-      setTop10AnimesData(data.top10Animes);
-      setTrendingData(data.top10Animes.today);
-      setPopularData(data.top10Animes.month);
-      setTableData(data.topAiringAnimes);
-      setCardStackData(data.latestEpisodeAnimes);
-      setGenreData(data.genres);
-      setUpcomingAnimesData(data.topUpcomingAnimes);
-      console.log(process.env);
+      const fresh = await fetchHomePage();
+      if (fresh && fresh.spotlightAnimes?.length) {
+        apply(fresh);
+        writeCache(CACHE_KEY, fresh);
+      }
     };
     loadData();
   }, []);
 
-  const isLoading = (data) => !data || data.length === 0;
+  const isLoading = (value) => !value || value.length === 0;
 
   return (
     <div className="flex flex-col px-10 gap-10 max-md:px-2 bg-custom">
