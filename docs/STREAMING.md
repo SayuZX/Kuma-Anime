@@ -1,48 +1,49 @@
 # Anime Streaming (Otakudesu — Sub Indo)
 
 Metadata (titles, images, characters, schedules) comes from official free APIs
-(Jikan, AniList, Kitsu). Those APIs do **not** serve video. For actual playback
-with Indonesian subtitles, the watch page uses a
-[wajik-anime-api](https://github.com/wajik45/wajik-anime-api) compatible
-instance that scrapes **Otakudesu**.
+(Jikan, AniList, Kitsu). Those APIs do **not** serve video. For playback with
+Indonesian subtitles, the watch page uses an Otakudesu-scraper API.
+
+It defaults to the public **Sanka Vollerei** instance
+(`https://www.sankavollerei.web.id/anime`), so streaming works out of the box.
 
 ## How it works
 
 On the watch page:
 
-1. The anime title (from Jikan/AniList) is searched on Otakudesu
-   (`/otakudesu/search?q=`), best-matched with Jaro–Winkler.
-2. Its episode list is fetched (`/otakudesu/anime/{animeId}`).
-3. When you pick an episode, its embed is fetched
-   (`/otakudesu/episode/{episodeId}` → `defaultStreamingUrl`) and rendered in an
-   iframe. Otakudesu streams are Indonesian hard-sub embeds.
+1. The anime's romaji title (from Jikan/AniList) is searched
+   (`/search/{query}`), with punctuation stripped and progressively shorter
+   fallbacks, best-matched with Jaro–Winkler.
+2. Its episode list is fetched (`/anime/{animeId}`).
+3. When you pick an episode, its embed is fetched (`/episode/{episodeId}` →
+   `defaultStreamingUrl`) and rendered in an iframe (Indonesian hard-sub).
 
-Adapter: `src/lib/sources/otakudesu.js`. It is the only integration point — if
-your instance differs, edit that one file.
+Adapter: `src/lib/sources/otakudesu.js`. It is the only integration point.
 
 ## Configuration
 
-It defaults to the public demo `https://wajik-anime-api.vercel.app`, so it works
-out of the box. Public demos are shared and can be rate-limited or go offline.
-For reliability, deploy your own instance and point to it:
+Override the provider with any API that exposes the same paths:
 
 ```
-NEXT_PUBLIC_STREAM_API_URL=https://your-wajik-anime-api.example.com
+NEXT_PUBLIC_STREAM_API_URL=https://your-instance.example.com/anime
 ```
 
-`wajik-anime-api` has a one-click deploy on its repository (Vercel/Render) — no
-server administration or coding required, just set the env var above to the URL
-you get.
+Expected paths (base already includes the `/anime` segment):
+
+- `GET {BASE}/search/{query}` → `data.animeList[]` (each has `animeId`, `title`)
+- `GET {BASE}/anime/{animeId}` → `data.episodeList[]` (each has `episodeId`, `title`)
+- `GET {BASE}/episode/{episodeId}` → `data.defaultStreamingUrl` (embed) + `data.server.qualities[]`
+
+A wajik-anime-api instance is compatible after adjusting the base/paths.
 
 ## ⚠️ Legal note
 
-Otakudesu is an Indonesian fansub site. Scraping it is a legal grey area and the
-scraper can break whenever the source site changes. This project ships no such
-server and does not host any video. Enabling and hosting a provider is the
-operator's decision and responsibility.
+These APIs scrape Indonesian fansub sites (Otakudesu). It is a legal grey area
+and the scraper can break when the source site changes. This project ships no
+such server and hosts no video. Enabling a provider is the operator's decision.
 
 ## Graceful fallback
 
 If the provider returns nothing (down, rate-limited, or no match), the player
-shows a clear "Stream tidak tersedia" notice and the rest of the page (info,
-characters, trailer, schedule) keeps working.
+shows a clear "Stream tidak tersedia" notice and the rest of the page keeps
+working.
