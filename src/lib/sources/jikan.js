@@ -7,7 +7,7 @@ import {
 } from "../normalize";
 
 const BASE = "https://api.jikan.moe/v4";
-const MIN_INTERVAL = 350;
+const MIN_INTERVAL = 550;
 
 function jikanGet(path, opts = {}) {
   return fetchJsonOrThrow(`${BASE}${path}`, {
