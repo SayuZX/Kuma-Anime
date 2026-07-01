@@ -84,13 +84,19 @@ export const FetchEpisodesByMappedID = async (title) => {
 export const FetchEpisodesData = async () => [];
 
 export const FetchEpisodeLinksByMappedID = async (episodeId) => {
-  const { embedUrl } = await otakudesu.getEpisodeEmbed(episodeId);
+  const { embedUrl, servers } = await otakudesu.getEpisodeEmbed(episodeId);
   return {
     sources: embedUrl
       ? [{ url: embedUrl, quality: "default", isM3U8: false }]
       : [],
     tracks: [],
+    servers: servers || [],
   };
+};
+
+export const FetchServerLink = async (serverId) => {
+  const url = await otakudesu.getServerEmbed(serverId);
+  return { url: url || "" };
 };
 
 export const SearchAniWatch = async (query) => {

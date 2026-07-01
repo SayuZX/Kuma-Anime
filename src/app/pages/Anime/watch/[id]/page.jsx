@@ -13,12 +13,12 @@ import AnimeRelation from "@/components/Anime/Watch/AnimeRelations";
 import ReusableVerticalCarousel from "@/components/Anime/Watch/ReusableVerticalCarousel";
 import ServerSelector from "@/components/Anime/Watch/ServerSelector";
 import { useUserData } from "@/provider/database";
-import { getStreamPrefs, setStreamPrefs } from "@/lib/streamPrefs";
 import {
   FetchAnimeByAniwatchID,
   FetchEpisodesByMappedID,
   FetchEpisodeLinksByMappedID,
   FetchEpisodesData,
+  FetchServerLink,
 } from "@/hooks/useApi";
 
 const StreamingPage = () => {
@@ -31,14 +31,10 @@ const StreamingPage = () => {
   const [episodeSrc, setEpisodeSrc] = useState(null);
   const [captionsData, setCaptionsData] = useState(null);
   const [episodeLoading, setEpisodeLoading] = useState(true);
-  const [activeServer, setActiveServer] = useState(
-    () => getStreamPrefs().server || "vidstream"
-  );
-  const [episodeType, setEpisodeType] = useState(
-    () => getStreamPrefs().category || "sub"
-  );
+  const [servers, setServers] = useState([]);
+  const [activeServerId, setActiveServerId] = useState("");
   const [lastSavedTime, setLastSavedTime] = useState(0); 
-  const { addAnimeEpisode, currentlyWatching } = useUserData();
+  const { addAnimeEpisode } = useUserData();
   const [episodeDuration, setEpisodeDuration] = useState(1440);
   const [currentTime, setCurrentTime] = useState(0);
 
@@ -81,12 +77,10 @@ const StreamingPage = () => {
           return;
         }
         setEpisodeLoading(true);
-        const episodeSrc = await FetchEpisodeLinksByMappedID(
-          current.episodeId,
-          activeServer,
-          episodeType
-        );
+        setActiveServerId("");
+        const episodeSrc = await FetchEpisodeLinksByMappedID(current.episodeId);
         setCaptionsData(episodeSrc.tracks || []);
+        setServers(episodeSrc.servers || []);
         setEpisodeSrc(episodeSrc.sources?.[0]?.url || null);
       } catch (error) {
         setEpisodeSrc(null);
@@ -95,7 +89,7 @@ const StreamingPage = () => {
       }
     };
     loadEpisodeData();
-  }, [currentEpisode, episodesData, episodeType, activeServer]);
+  }, [currentEpisode, episodesData]);
 
   const shouldSaveProgress = (currentTime) => {
     return currentTime - lastSavedTime >= 240; 
@@ -127,10 +121,20 @@ const StreamingPage = () => {
     setCurrentEpisode(number);
   };
 
-  const handleServer = (type, server) => {
-    setEpisodeType(type);
-    setActiveServer(server);
-    setStreamPrefs({ category: type, server });
+  const handleQuality = async (serverId) => {
+    setActiveServerId(serverId);
+    const current = episodesData?.[currentEpisode - 1];
+    if (!serverId) {
+      if (current) {
+        const res = await FetchEpisodeLinksByMappedID(current.episodeId);
+        setEpisodeSrc(res.sources?.[0]?.url || null);
+      }
+      return;
+    }
+    setEpisodeLoading(true);
+    const { url } = await FetchServerLink(serverId);
+    if (url) setEpisodeSrc(url);
+    setEpisodeLoading(false);
   };
 
   const handleTimeUpdate = (event) => {
@@ -155,7 +159,7 @@ const StreamingPage = () => {
 
   return (
     <div className="flex flex-col px-5 gap-3 max-md:px-2">
-      <div className="flex flex-row justify-between h-[550px] gap-1 max-md:flex-col rounded-lg">
+      <div className="flex flex-row items-start justify-between gap-2 max-md:flex-col rounded-lg">
         <VideoPlayer
           episodeLoading={episodeLoading}
           episodeSrc={episodeSrc}
@@ -176,11 +180,10 @@ const StreamingPage = () => {
         <div className="flex flex-row max-md:flex-col max-md:gap-5 w-full justify-between">
           <div className="flex flex-col w-[72%] max-md:w-full gap-3">
             <ServerSelector
-              onClick={handleServer}
-              episodeType={episodeType}
-              activeServer={activeServer}
-              Servers={["VidStream", "MegaCloud", "StreamSB"]}
               currentEpisode={currentEpisode}
+              servers={servers}
+              activeServerId={activeServerId}
+              onSelect={handleQuality}
             />
             <BasicDetails data={animeData.anime} page="Streaming" />
             {animeData.seasons.length > 0 && (
