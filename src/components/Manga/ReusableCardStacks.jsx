@@ -59,21 +59,13 @@ const ReusableCardStacks = ({ data, title }) => {
                 : manga.title}
             </Link>
             <div className="flex flex-col gap-1 mt-2 h-[70px]">
-              <Link
-                href={`/pages/Manga/read/${manga.id}/chapter-${
-                  doubleCheckedChapter.split(" ")[1]
-                }`}
-              >
+              <Link href={`/pages/Manga/details/${manga.id}`}>
                 <Button className="bg-primary/5 text-primary hover:text-primary-foreground hover:bg-primary w-full">
                   {doubleCheckedChapter}
                 </Button>
               </Link>
               {!isNaN(parseInt(manga.chapter.split(" ")[1]) - 1) && (
-                <Link
-                  href={`/pages/Manga/read/${manga.id}/chapter-${
-                    parseInt(doubleCheckedChapter.split(" ")[1]) - 1
-                  }`}
-                >
+                <Link href={`/pages/Manga/details/${manga.id}`}>
                   <Button className="bg-primary/5 text-primary hover:text-primary-foreground hover:bg-primary w-full">
                     Chapter{" "}
                     {parseInt(doubleCheckedChapter.split(" ")[1]) - 1}
