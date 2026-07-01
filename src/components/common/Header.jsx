@@ -18,6 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -266,6 +267,9 @@ function SearchDialog({
       <DialogContent className="max-md:w-[95%] md:max-w-[700px] lg:max-w-[900px]">
         <DialogHeader>
           <DialogTitle>Search Kuma Anime</DialogTitle>
+          <DialogDescription className="sr-only">
+            Cari anime dan manga
+          </DialogDescription>
         </DialogHeader>
         <Tabs defaultValue="anime" className="mt-4">
           <TabsList className="grid w-full grid-cols-2">
