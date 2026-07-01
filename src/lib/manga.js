@@ -1,7 +1,5 @@
 import * as mangadex from "./sources/mangadex";
-import { mangaData, moreMangaData } from "./fallbackData";
 import { logger } from "./logger";
-import { asArray } from "./normalize";
 
 async function safe(fn, fallback) {
   try {
@@ -13,32 +11,22 @@ async function safe(fn, fallback) {
   }
 }
 
-function staticList() {
-  return asArray(mangaData?.mangaList).concat(asArray(moreMangaData?.mangaList));
-}
-
 export async function getMangaList(page = 1) {
   const limit = 24;
   const offset = (Math.max(1, Number(page) || 1) - 1) * limit;
   const list = await safe(() => mangadex.listPopular(limit, offset), []);
-  if (list.length) return { mangaList: list };
-  logger.warn("manga list: MangaDex empty → static fallback");
-  const fb = staticList();
-  return { mangaList: fb.length ? fb : [] };
+  return { mangaList: list };
 }
 
 export async function getMangaLatest(page = 1) {
   const limit = 24;
   const offset = (Math.max(1, Number(page) || 1) - 1) * limit;
   const list = await safe(() => mangadex.listLatest(limit, offset), []);
-  return { mangaList: list.length ? list : staticList() };
+  return { mangaList: list };
 }
 
 export async function getMangaDetails(id) {
-  const detail = await safe(() => mangadex.mangaDetail(id), null);
-  if (detail) return detail;
-  const fb = staticList().find((m) => m.id === id) || staticList()[0] || null;
-  return fb ? { ...fb, chapterList: [] } : null;
+  return safe(() => mangadex.mangaDetail(id), null);
 }
 
 export async function searchManga(query, page = 1) {

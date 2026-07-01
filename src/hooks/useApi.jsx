@@ -1,33 +1,37 @@
-import {
-  getAnimeById,
-  searchAnime as searchAnimeSource,
-  getSchedule,
-} from "@/lib/anime";
+import * as otakudesu from "@/lib/sources/otakudesu";
 import {
   getMangaList,
   getMangaDetails,
   getChapterSource,
   searchManga as searchMangaSource,
 } from "@/lib/manga";
-import * as jikan from "@/lib/sources/jikan";
 import { sanitizeQuery } from "@/lib/normalize";
-import { logger } from "@/lib/logger";
+
+async function apiGet(path) {
+  try {
+    const res = await fetch(path);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
 
 function toDetailShape(result) {
-  if (!result?.detail) return null;
-  const d = result.detail;
+  const d = result?.detail || {};
   const malscore = d.malscore ?? "N/A";
   const color = d.color || "#a78bfa";
   return {
     anime: {
       info: {
-        id: d.id,
-        anilistId: d.id,
-        name: d.name,
-        jname: d.jname,
-        poster: d.poster,
+        id: d.id ?? null,
+        anilistId: d.id ?? null,
+        name: d.name || "",
+        jname: d.jname || "",
+        romaji: d.romaji || d.name || "",
+        poster: d.poster || "",
         description: d.description || "",
-        promotionalVideos: result.videos || [],
+        promotionalVideos: result?.videos || [],
         stats: {
           rating: d.rating || "PG-13",
           type: d.type || "TV",
@@ -50,19 +54,19 @@ function toDetailShape(result) {
       malscore,
     },
     seasons: [],
-    relatedAnimes: result.related || [],
-    recommendedAnimes: result.related || [],
+    relatedAnimes: result?.related || [],
+    recommendedAnimes: result?.related || [],
     mostPopularAnimes: [],
   };
 }
 
 export const FetchAnimeByAniwatchID = async (id) => {
-  const result = await getAnimeById(id);
-  return toDetailShape(result) || toDetailShape({ detail: null });
+  const result = await apiGet(`/api/anime/${encodeURIComponent(id)}`);
+  return toDetailShape(result);
 };
 
 export const FetchAnimeByID = async (id) => {
-  const result = await getAnimeById(id);
+  const result = await apiGet(`/api/anime/${encodeURIComponent(id)}`);
   return {
     cover: result?.detail?.cover || result?.detail?.poster || null,
     characters: result?.characters || [],
@@ -70,31 +74,48 @@ export const FetchAnimeByID = async (id) => {
   };
 };
 
-export const FetchEpisodesByMappedID = async (id) => {
-  const episodes = await jikan.animeEpisodes(id).catch(() => []);
-  return { episodes: episodes || [] };
+export const FetchEpisodesByMappedID = async (title) => {
+  return otakudesu.getAnimeEpisodes(title);
 };
 
 export const FetchEpisodesData = async () => [];
-export const FetchEpisodeLinksByMappedID = async () => ({
-  sources: [],
-  tracks: [],
-});
+
+export const FetchEpisodeLinksByMappedID = async (episodeId) => {
+  const { embedUrl, qualities } = await otakudesu.getEpisodeEmbed(episodeId);
+  return {
+    sources: embedUrl
+      ? [{ url: embedUrl, quality: "default", isM3U8: false }]
+      : [],
+    tracks: [],
+    qualities: qualities || [],
+  };
+};
+
+export const FetchServerLink = async (serverId) => {
+  const url = await otakudesu.getServerEmbed(serverId);
+  return { url: url || "" };
+};
 
 export const SearchAniWatch = async (query) => {
   const q = sanitizeQuery(query);
   if (!q) return [];
-  return searchAnimeSource(q);
+  return (await apiGet(`/api/search?q=${encodeURIComponent(q)}`)) || [];
 };
 
-export const AdvancedSearch = async (query, genre) => {
-  const q = sanitizeQuery(query) || sanitizeQuery(genre) || "";
-  if (!q) return [];
-  return searchAnimeSource(q);
+export const AdvancedSearch = async (query, genre, ...filters) => {
+  const page = Number(filters[13]) || 1;
+  const q = sanitizeQuery(query);
+  const g = sanitizeQuery(genre);
+  const params = q
+    ? `q=${encodeURIComponent(q)}`
+    : `genre=${encodeURIComponent(g)}`;
+  return (await apiGet(`/api/search?${params}&page=${page}`)) || [];
 };
 
 export const FetchEstimatedSchedule = async (year, month, day) => {
-  return getSchedule(year, month, day);
+  return (
+    (await apiGet(`/api/schedule?year=${year}&month=${month}&day=${day}`)) || []
+  );
 };
 
 export const FetchMangaList = async (page = 1) => getMangaList(page);
@@ -116,5 +137,3 @@ export const GetMangaSearch = async (query, count = 24) => {
   const { mangaList } = await searchMangaSource(q);
   return Array.isArray(mangaList) ? mangaList.slice(0, count) : [];
 };
-
-logger.debug("useApi: resilient data layer active");

@@ -1,8 +1,9 @@
 "use client";
 import { useParams } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { AdvancedSearch } from "@/hooks/useApi";
 import Link from "next/link";
+import Image from "next/image";
 import {
   faClosedCaptioning,
   faMicrophone,
@@ -25,6 +26,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 const Search = () => {
   const { id } = useParams();
@@ -44,10 +46,12 @@ const Search = () => {
   const [endMonth, setEndMonth] = useState(null);
   const [endYear, setEndYear] = useState(null);
   const [score, setScore] = useState(null);
+  const [page, setPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
 
-  useEffect(() => {
-    const loadData = async () => {
-      const data = await AdvancedSearch(
+  const runSearch = useCallback(
+    (targetPage) =>
+      AdvancedSearch(
         " " + searchQuery,
         genre,
         type,
@@ -62,29 +66,54 @@ const Search = () => {
         endYear,
         endMonth,
         endDay,
-        score
-      );
-      setSearchData(data);
+        score,
+        targetPage
+      ),
+    [
+      searchQuery,
+      genre,
+      type,
+      sort,
+      season,
+      lang,
+      status,
+      rating,
+      startYear,
+      startMonth,
+      startDay,
+      endYear,
+      endMonth,
+      endDay,
+      score,
+    ]
+  );
+
+  useEffect(() => {
+    let active = true;
+    setSearchData(null);
+    setPage(1);
+    runSearch(1).then((data) => {
+      if (active) setSearchData(data);
+    });
+    return () => {
+      active = false;
     };
-    loadData();
-  }, [
-    searchQuery,
-    genre,
-    type,
-    sort,
-    season,
-    lang,
-    status,
-    rating,
-    startYear,
-    startMonth,
-    startDay,
-    endYear,
-    endMonth,
-    endDay,
-    score,
-  ]);
-  const skeletonArr = Array(14).fill();
+  }, [runSearch]);
+
+  const loadMore = async () => {
+    setLoadingMore(true);
+    const next = page + 1;
+    const more = await runSearch(next);
+    setSearchData((prev) => {
+      const seen = new Set((prev || []).map((a) => a.id));
+      const fresh = (more || []).filter((a) => !seen.has(a.id));
+      return [...(prev || []), ...fresh];
+    });
+    setPage(next);
+    setLoadingMore(false);
+  };
+
+  const skeletonArr = Array(14).fill(null);
 
   return (
     <div className="flex flex-col gap-5">
@@ -113,17 +142,19 @@ const Search = () => {
       </div>
       <div className="grid grid-cols-7 max-md:grid-cols-2 place-items-center gap-5 p-5 bg-neutral-700/20 rounded-t-3xl">
         {searchData
-          ? searchData.map((anime) => (
+          ? searchData.map((anime, index) => (
               <Link
-                key={anime.id}
+                key={`${anime.id}-${index}`}
                 href={`/pages/Anime/details/${anime.id}`}
                 className="flex flex-col group gap-1 animated"
               >
                 <div className="relative flex items-center justify-center">
-                  <img
+                  <Image
                     className="w-[173px] h-[244px] object-cover rounded-lg"
-                    src={anime.poster}
-                    alt=""
+                    src={anime.poster || "/icon.png"}
+                    alt={anime.name || "poster"}
+                    width={173}
+                    height={244}
                   />
                   <div className="absolute flex justify-center items-center h-full w-full top-0 group-hover:seasonCard transition-full rounded-xl">
                     <FontAwesomeIcon
@@ -149,19 +180,36 @@ const Search = () => {
                     : anime.name}
                 </h2>
                 <div className="flex flex-row gap-2">
-                  <Badge variant={'secondary'} >{anime.type}</Badge>
-                  <Badge variant={'secondary'} >{anime.duration}</Badge>
+                  <Badge variant={"secondary"}>{anime.type}</Badge>
+                  <Badge variant={"secondary"}>{anime.duration}</Badge>
                 </div>
               </Link>
             ))
           : skeletonArr.map((d, index) => (
-              <div className="flex flex-col gap-1 items-center">
+              <div key={index} className="flex flex-col gap-1 items-center">
                 <Skeleton className="w-[173px] h-[244px]" />
                 <Skeleton className="w-full h-[20px]" />
                 <Skeleton className="w-[50%] h-[20px]" />
               </div>
             ))}
       </div>
+      {searchData && searchData.length > 0 && (
+        <div className="flex justify-center pb-12">
+          <Button
+            onClick={loadMore}
+            disabled={loadingMore}
+            className="px-10"
+            variant="secondary"
+          >
+            {loadingMore ? "Memuat..." : "Muat Lebih Banyak"}
+          </Button>
+        </div>
+      )}
+      {searchData && searchData.length === 0 && (
+        <p className="text-center pb-12 text-muted-foreground">
+          Tidak ada hasil. Coba kata kunci atau filter lain.
+        </p>
+      )}
     </div>
   );
 };

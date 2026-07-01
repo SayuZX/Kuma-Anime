@@ -1,7 +1,6 @@
 import * as jikan from "./sources/jikan";
 import * as anilist from "./sources/anilist";
 import * as kitsu from "./sources/kitsu";
-import { animeData } from "./fallbackData";
 import { logger } from "./logger";
 import { asArray } from "./normalize";
 
@@ -17,7 +16,7 @@ async function tryChain(label, fns, fallback = []) {
       logger.warn(`${label}: ${name} threw`, err?.message);
     }
   }
-  logger.warn(`${label}: all sources empty → static fallback`);
+  logger.warn(`${label}: all sources empty`);
   return fallback;
 }
 
@@ -29,8 +28,7 @@ export async function getHomePage() {
         { name: "jikan", fn: () => jikan.topAnime("airing", 24) },
         { name: "anilist", fn: () => anilist.listBySort("TRENDING_DESC", 24) },
         { name: "kitsu", fn: () => kitsu.listTrending(24) },
-      ],
-      animeData.topAiringAnimes
+      ]
     ),
     tryChain(
       "popular",
@@ -38,29 +36,25 @@ export async function getHomePage() {
         { name: "jikan", fn: () => jikan.topAnime("bypopularity", 12) },
         { name: "anilist", fn: () => anilist.listBySort("POPULARITY_DESC", 12) },
         { name: "kitsu", fn: () => kitsu.listPopular(12) },
-      ],
-      animeData.mostPopularAnimes
+      ]
     ),
     tryChain(
       "favorite",
       [
         { name: "jikan", fn: () => jikan.topAnime("favorite", 10) },
         { name: "anilist", fn: () => anilist.listBySort("FAVOURITES_DESC", 10) },
-      ],
-      animeData.top10Animes.month
+      ]
     ),
     tryChain(
       "upcoming",
       [
         { name: "jikan", fn: () => jikan.seasonUpcoming(16) },
         { name: "anilist", fn: () => anilist.listBySort("POPULARITY_DESC", 16, 2) },
-      ],
-      animeData.topUpcomingAnimes
+      ]
     ),
     tryChain(
       "genres",
-      [{ name: "jikan", fn: () => jikan.genres() }],
-      animeData.genres
+      [{ name: "jikan", fn: () => jikan.genres() }]
     ),
   ]);
 
@@ -72,7 +66,7 @@ export async function getHomePage() {
   return {
     spotlightAnimes: spotlight,
     trendingAnimes: today,
-    latestEpisodeAnimes: airing.slice(10, 24).length ? airing.slice(10, 24) : airing,
+    latestEpisodeAnimes: airing,
     topUpcomingAnimes: upcoming,
     topAiringAnimes: airing,
     mostPopularAnimes: popular,
@@ -112,11 +106,19 @@ export async function getAnimeById(id) {
   return null;
 }
 
-export async function searchAnime(query) {
+export async function searchAnime(query, page = 1) {
   return tryChain("search", [
-    { name: "jikan", fn: () => jikan.searchAnime(query) },
-    { name: "anilist", fn: () => anilist.searchAnime(query) },
-    { name: "kitsu", fn: () => kitsu.searchAnime(query) },
+    { name: "jikan", fn: () => jikan.searchAnime(query, page) },
+    { name: "anilist", fn: () => anilist.searchAnime(query, 24, page) },
+    { name: "kitsu", fn: () => kitsu.searchAnime(query, 24, page) },
+  ]);
+}
+
+export async function discoverAnime(genre, page = 1) {
+  return tryChain("discover", [
+    { name: "jikan", fn: () => jikan.discover(genre, page) },
+    { name: "anilist", fn: () => anilist.listBySort("POPULARITY_DESC", 24, page) },
+    { name: "kitsu", fn: () => kitsu.listPopular(24) },
   ]);
 }
 

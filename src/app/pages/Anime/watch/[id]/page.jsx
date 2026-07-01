@@ -18,6 +18,7 @@ import {
   FetchEpisodesByMappedID,
   FetchEpisodeLinksByMappedID,
   FetchEpisodesData,
+  FetchServerLink,
 } from "@/hooks/useApi";
 
 const StreamingPage = () => {
@@ -26,14 +27,15 @@ const StreamingPage = () => {
   const [episodesData, setEpisodesData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [episodeImages, setEpisodeImages] = useState({});
-  const [currentEpisode, setCurrentEpisode] = useState(1);
+  const [currentEpisode, setCurrentEpisode] = useState(null);
   const [episodeSrc, setEpisodeSrc] = useState(null);
   const [captionsData, setCaptionsData] = useState(null);
   const [episodeLoading, setEpisodeLoading] = useState(true);
-  const [activeServer, setActiveServer] = useState("VidStream");
-  const [episodeType, setEpisodeType] = useState("sub");
+  const [qualities, setQualities] = useState([]);
+  const [selectedResolution, setSelectedResolution] = useState("");
+  const [activeServerId, setActiveServerId] = useState("");
   const [lastSavedTime, setLastSavedTime] = useState(0); 
-  const { addAnimeEpisode, currentlyWatching } = useUserData();
+  const { addAnimeEpisode } = useUserData();
   const [episodeDuration, setEpisodeDuration] = useState(1440);
   const [currentTime, setCurrentTime] = useState(0);
 
@@ -43,7 +45,9 @@ const StreamingPage = () => {
       const MetaData = await FetchAnimeByAniwatchID(id);
       setAnimeData(MetaData);
       if (MetaData) {
-        const EpisodesData = await FetchEpisodesByMappedID(id);
+        const EpisodesData = await FetchEpisodesByMappedID(
+          MetaData.anime.info.romaji || MetaData.anime.info.name
+        );
         setEpisodesData(EpisodesData.episodes);
         fetchEpisodeImages(MetaData.anime.info.anilistId);
       }
@@ -68,44 +72,47 @@ const StreamingPage = () => {
   useEffect(() => {
     const loadEpisodeData = async () => {
       try {
-        if (episodesData) {
-          setEpisodeLoading(true);
-          const episodeSrc = await FetchEpisodeLinksByMappedID(
-            episodesData[currentEpisode - 1].episodeId,
-            activeServer,
-            episodeType
-          );
-          setCaptionsData(episodeSrc.tracks);
-          setEpisodeSrc(episodeSrc.sources[0].url);
+        const current = episodesData?.[currentEpisode - 1];
+        if (!current) {
+          setEpisodeSrc(null);
+          return;
         }
+        setEpisodeLoading(true);
+        setActiveServerId("");
+        const episodeSrc = await FetchEpisodeLinksByMappedID(current.episodeId);
+        setCaptionsData(episodeSrc.tracks || []);
+        const q = episodeSrc.qualities || [];
+        setQualities(q);
+        setSelectedResolution(q[0]?.resolution || "");
+        setEpisodeSrc(episodeSrc.sources?.[0]?.url || null);
       } catch (error) {
-        console.log(error);
+        setEpisodeSrc(null);
       } finally {
         setEpisodeLoading(false);
       }
     };
     loadEpisodeData();
-  }, [currentEpisode, episodesData, episodeType, activeServer]);
+  }, [currentEpisode, episodesData]);
 
   const shouldSaveProgress = (currentTime) => {
     return currentTime - lastSavedTime >= 240; 
   };
 
   const updateDatabase = () => {
-    if (animeData != null && shouldSaveProgress(currentTime)) {
+    const current = episodesData?.[currentEpisode - 1];
+    if (animeData != null && current && shouldSaveProgress(currentTime)) {
       addAnimeEpisode(
         animeData.anime.info.id,
         animeData.anime.info.name ?? animeData.anime.info.jname ?? "??",
-        episodesData[currentEpisode - 1].title,
-        episodesWithImages[currentEpisode - 1].image ??
+        current.title,
+        episodesWithImages?.[currentEpisode - 1]?.image ??
           animeData.anime.info.poster,
         currentEpisode,
         animeData.anime.info.stats.episodes.sub,
         currentTime,
         episodeDuration
       );
-      setLastSavedTime(currentTime); 
-      console.log(currentlyWatching);
+      setLastSavedTime(currentTime);
     }
   };
 
@@ -117,9 +124,25 @@ const StreamingPage = () => {
     setCurrentEpisode(number);
   };
 
-  const handleServer = (type, server) => {
-    setEpisodeType(type);
-    setActiveServer(server);
+  const handleResolution = (resolution) => {
+    setSelectedResolution(resolution);
+    setActiveServerId("");
+  };
+
+  const handleServer = async (serverId) => {
+    setActiveServerId(serverId);
+    const current = episodesData?.[currentEpisode - 1];
+    if (!serverId) {
+      if (current) {
+        const res = await FetchEpisodeLinksByMappedID(current.episodeId);
+        setEpisodeSrc(res.sources?.[0]?.url || null);
+      }
+      return;
+    }
+    setEpisodeLoading(true);
+    const { url } = await FetchServerLink(serverId);
+    if (url) setEpisodeSrc(url);
+    setEpisodeLoading(false);
   };
 
   const handleTimeUpdate = (event) => {
@@ -136,12 +159,15 @@ const StreamingPage = () => {
     episodesData &&
     episodesData.map((episode, index) => ({
       ...episode,
-      image: episodeImages[index + 1] || animeData.anime.info.poster,
+      image:
+        episodeImages[index + 1] ||
+        animeData?.anime?.info?.poster ||
+        "/icon.png",
     }));
 
   return (
     <div className="flex flex-col px-5 gap-3 max-md:px-2">
-      <div className="flex flex-row justify-between h-[550px] gap-1 max-md:flex-col rounded-lg">
+      <div className="flex flex-row items-start justify-between gap-2 max-md:flex-col rounded-lg">
         <VideoPlayer
           episodeLoading={episodeLoading}
           episodeSrc={episodeSrc}
@@ -162,11 +188,12 @@ const StreamingPage = () => {
         <div className="flex flex-row max-md:flex-col max-md:gap-5 w-full justify-between">
           <div className="flex flex-col w-[72%] max-md:w-full gap-3">
             <ServerSelector
-              onClick={handleServer}
-              episodeType={episodeType}
-              activeServer={activeServer}
-              Servers={["VidStream", "MegaCloud", "StreamSB"]}
               currentEpisode={currentEpisode}
+              qualities={qualities}
+              selectedResolution={selectedResolution}
+              onResolution={handleResolution}
+              activeServerId={activeServerId}
+              onServer={handleServer}
             />
             <BasicDetails data={animeData.anime} page="Streaming" />
             {animeData.seasons.length > 0 && (

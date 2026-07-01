@@ -55,9 +55,10 @@ export async function listTrending(limit = 12) {
     .filter(Boolean);
 }
 
-export async function searchAnime(query, limit = 24) {
+export async function searchAnime(query, limit = 24, page = 1) {
+  const offset = (Math.max(1, page) - 1) * limit;
   const data = await kitsuGet(
-    `/anime?filter[text]=${encodeURIComponent(query)}&page[limit]=${limit}`
+    `/anime?filter[text]=${encodeURIComponent(query)}&page[limit]=${limit}&page[offset]=${offset}`
   );
   return asArray(data?.data).map((n) => mapAnimeCard(n)).filter(Boolean);
 }

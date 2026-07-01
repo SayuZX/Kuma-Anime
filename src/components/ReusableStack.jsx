@@ -29,11 +29,6 @@ const ReusableStack = ({ data }) => {
     },
   ];
 
-  const chunkedData = [];
-  for (let i = 0; i < data.length; i += 5) {
-    chunkedData.push(data.slice(i, i + 5));
-  }
-
   if (!Array.isArray(data) || data.length === 0) {
     return (
       <div className="flex flex-row justify-between pb-5 animated max-md:flex-col max-md:gap-5">
@@ -62,6 +57,11 @@ const ReusableStack = ({ data }) => {
         ))}
       </div>
     );
+  }
+
+  const chunkedData = [];
+  for (let i = 0; i < data.length; i += 5) {
+    chunkedData.push(data.slice(i, i + 5));
   }
 
   return (

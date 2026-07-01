@@ -1,7 +1,11 @@
-import { getHomePage } from "@/lib/anime";
-
 export async function fetchHomePage() {
-  return getHomePage();
+  try {
+    const res = await fetch("/api/home");
+    if (!res.ok) return {};
+    return await res.json();
+  } catch {
+    return {};
+  }
 }
 
 export function extractData(items) {

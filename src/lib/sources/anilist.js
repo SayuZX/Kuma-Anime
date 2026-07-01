@@ -40,6 +40,7 @@ export function mapAnimeCard(m, rank) {
     anilistId: String(m.id),
     name: m.title?.english || m.title?.romaji || "Unknown",
     jname: m.title?.native || m.title?.romaji || "??",
+    romaji: m.title?.romaji || "",
     poster,
     cover,
     carouselImage: cover,
@@ -72,14 +73,14 @@ export async function listBySort(sort = "TRENDING_DESC", perPage = 12, page = 1)
   return asArray(data?.Page?.media).map((m, i) => mapAnimeCard(m, i + 1));
 }
 
-export async function searchAnime(query, perPage = 24) {
+export async function searchAnime(query, perPage = 24, page = 1) {
   const data = await gql(
-    `query ($search: String, $perPage: Int) {
-      Page(perPage: $perPage) {
+    `query ($search: String, $perPage: Int, $page: Int) {
+      Page(perPage: $perPage, page: $page) {
         media(type: ANIME, search: $search, sort: SEARCH_MATCH, isAdult: false) { ${MEDIA_FIELDS} }
       }
     }`,
-    { search: query, perPage }
+    { search: query, perPage, page }
   );
   return asArray(data?.Page?.media).map((m) => mapAnimeCard(m));
 }

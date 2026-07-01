@@ -27,7 +27,7 @@ const VideoPlayer = ({
 
   if (episodeLoading || !episodesData) {
     return (
-      <div className="w-[72%] max-md:w-full max-md:h-[200px] max-md:mb-5 flex flex-col gap-4 max-md:aspect-video">
+      <div className="w-[72%] max-md:w-full aspect-video flex flex-col gap-4">
         <Skeleton className="flex flex-row items-end p-5 justify-between relative w-full h-full rounded-md">
           <div className="flex flex-row gap-1">
             <Skeleton className="h-[40px] w-[40px] rounded-full" />
@@ -43,8 +43,57 @@ const VideoPlayer = ({
     );
   }
 
+  if (!currentEpisode) {
+    return (
+      <div className="w-[72%] max-md:w-full aspect-video rounded-3xl flex items-center justify-center bg-neutral-800/40 border border-neutral-700/40 p-6 text-center">
+        <div className="flex flex-col gap-2">
+          <p className="text-lg font-semibold">Pilih episode untuk mulai menonton</p>
+          <p className="text-sm text-muted-foreground max-w-md">
+            Klik salah satu episode di daftar sebelah untuk memuat video. Video
+            tidak diputar otomatis.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!episodeSrc) {
+    return (
+      <div className="w-[72%] max-md:w-full aspect-video rounded-3xl flex items-center justify-center bg-neutral-800/40 border border-neutral-700/40 p-6 text-center">
+        <div className="flex flex-col gap-2">
+          <p className="text-lg font-semibold">Stream tidak tersedia</p>
+          <p className="text-sm text-muted-foreground max-w-md">
+            Sumber video eksternal belum dikonfigurasi atau episode ini tidak
+            tersedia. Kamu tetap bisa melihat info, karakter, dan trailer anime
+            ini.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const isEmbed = episodeSrc && !/\.(m3u8|mp4)(\?|$)/i.test(episodeSrc);
+  if (isEmbed) {
+    return (
+      <div className="w-[72%] max-md:w-full aspect-video rounded-3xl overflow-hidden">
+        <iframe
+          key={currentEpisode}
+          src={episodeSrc}
+          title={
+            episodesData[currentEpisode - 1]?.title ||
+            `Episode ${currentEpisode}`
+          }
+          className="w-full h-full rounded-3xl border-0"
+          allow="autoplay; fullscreen; encrypted-media"
+          allowFullScreen
+          referrerPolicy="no-referrer"
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className="h-full max-md:h-auto max-md:aspect-video w-[72%] max-md:w-full rounded-3xl">
+    <div className="w-[72%] max-md:w-full aspect-video rounded-3xl">
       <MediaPlayer
         key={currentEpisode}
         className="vds-player animated"
