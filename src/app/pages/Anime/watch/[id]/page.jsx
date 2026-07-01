@@ -75,18 +75,21 @@ const StreamingPage = () => {
   useEffect(() => {
     const loadEpisodeData = async () => {
       try {
-        if (episodesData) {
-          setEpisodeLoading(true);
-          const episodeSrc = await FetchEpisodeLinksByMappedID(
-            episodesData[currentEpisode - 1].episodeId,
-            activeServer,
-            episodeType
-          );
-          setCaptionsData(episodeSrc.tracks);
-          setEpisodeSrc(episodeSrc.sources[0].url);
+        const current = episodesData?.[currentEpisode - 1];
+        if (!current) {
+          setEpisodeSrc(null);
+          return;
         }
+        setEpisodeLoading(true);
+        const episodeSrc = await FetchEpisodeLinksByMappedID(
+          current.episodeId,
+          activeServer,
+          episodeType
+        );
+        setCaptionsData(episodeSrc.tracks || []);
+        setEpisodeSrc(episodeSrc.sources?.[0]?.url || null);
       } catch (error) {
-        console.log(error);
+        setEpisodeSrc(null);
       } finally {
         setEpisodeLoading(false);
       }
@@ -99,20 +102,20 @@ const StreamingPage = () => {
   };
 
   const updateDatabase = () => {
-    if (animeData != null && shouldSaveProgress(currentTime)) {
+    const current = episodesData?.[currentEpisode - 1];
+    if (animeData != null && current && shouldSaveProgress(currentTime)) {
       addAnimeEpisode(
         animeData.anime.info.id,
         animeData.anime.info.name ?? animeData.anime.info.jname ?? "??",
-        episodesData[currentEpisode - 1].title,
-        episodesWithImages[currentEpisode - 1].image ??
+        current.title,
+        episodesWithImages?.[currentEpisode - 1]?.image ??
           animeData.anime.info.poster,
         currentEpisode,
         animeData.anime.info.stats.episodes.sub,
         currentTime,
         episodeDuration
       );
-      setLastSavedTime(currentTime); 
-      console.log(currentlyWatching);
+      setLastSavedTime(currentTime);
     }
   };
 
@@ -144,7 +147,10 @@ const StreamingPage = () => {
     episodesData &&
     episodesData.map((episode, index) => ({
       ...episode,
-      image: episodeImages[index + 1] || animeData.anime.info.poster,
+      image:
+        episodeImages[index + 1] ||
+        animeData?.anime?.info?.poster ||
+        "/icon.png",
     }));
 
   return (

@@ -27,18 +27,16 @@ const EpisodeList = ({
     episodesData &&
     episodesData.length > 0
       && episodesData.filter((data) => {
-          const title = data.title;
-          const id = data.episodeId;
-          const number = data.number;
-          const altTitle = "Episode " + number;
+          const term = searchTerm.toLowerCase();
+          const title = String(data?.title || "").toLowerCase();
+          const id = String(data?.episodeId || "").toLowerCase();
+          const number = String(data?.number ?? "").toLowerCase();
+          const altTitle = ("episode " + number).toLowerCase();
           return (
-            title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            number
-              .toString()
-              .toLowerCase()
-              .includes(searchTerm.toLowerCase()) ||
-            altTitle.toLowerCase().includes(searchTerm.toLowerCase())
+            title.includes(term) ||
+            id.includes(term) ||
+            number.includes(term) ||
+            altTitle.includes(term)
           );
         });
 
