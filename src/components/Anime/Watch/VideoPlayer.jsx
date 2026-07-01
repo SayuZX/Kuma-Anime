@@ -85,7 +85,6 @@ const VideoPlayer = ({
           }
           className="w-full h-full rounded-3xl border-0"
           allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-          allowFullScreen
           referrerPolicy="no-referrer"
         />
       </div>
