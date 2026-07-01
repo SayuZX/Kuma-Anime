@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Input } from "@/components/ui/input";
+import Image from "next/image";
 import CategoryCards from "@/components/category-cards";
 import { Button } from "@/components/ui/button";
 
@@ -39,10 +39,11 @@ export default function Component() {
                   </Link>
                 </div>
               </div>
-              <img
+              <Image
                 src="/homepage-cover.jpg"
                 width={800}
                 height={600}
+                priority
                 alt="Anime hero image"
                 className="mx-auto aspect-video overflow-hidden rounded-xl object-cover"
               />
@@ -84,14 +85,15 @@ export default function Component() {
             </div>
             <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 py-12 sm:grid-cols-2 lg:gap-12">
               <Link
-                href="/pages/Anime/details/attack-on-titan-the-final-season-part-3-18329"
+                href="/pages/Anime/details/16498"
                 className="group grid w-full justify-start gap-1 rounded-md bg-background p-4 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 dark:bg-background dark:text-foreground dark:hover:bg-accent dark:hover:text-accent-foreground"
                 prefetch={false}
               >
-                <img
+                <Image
                   src="/anime_latest.jpg"
                   width={600}
                   height={338}
+                  loading="lazy"
                   alt="New Release 1"
                   className="aspect-video overflow-hidden rounded-md object-cover"
                 />
@@ -104,14 +106,15 @@ export default function Component() {
                 <Button className="mt-3">Tonton Sekarang {">"}</Button>
               </Link>
               <Link
-                href="/pages/Manga/details/manga-dn980422"
+                href="/pages/Manga"
                 className="group grid w-full justify-start gap-1 rounded-md bg-background p-4 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 dark:bg-background dark:text-foreground dark:hover:bg-accent dark:hover:text-accent-foreground"
                 prefetch={false}
               >
-                <img
+                <Image
                   src="/manga_latest.jpg"
                   width={600}
                   height={338}
+                  loading="lazy"
                   alt="New Release 2"
                   className="aspect-video overflow-hidden rounded-md object-cover"
                 />
@@ -143,15 +146,16 @@ export default function Component() {
             </div>
             <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 py-12 sm:grid-cols-2 lg:gap-12">
               <Link
-                href="/pages/Anime/details/one-piece-100"
+                href="/pages/Anime/details/21"
                 className="group grid w-full justify-start gap-1 rounded-md bg-background p-4 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 dark:bg-background dark:text-foreground dark:hover:bg-accent dark:hover:text-accent-foreground"
                 prefetch={false}
               >
-                <img
+                <Image
                   src="/anime_watched.jpg"
                   width={600}
                   height={338}
-                  alt="New Release 1"
+                  loading="lazy"
+                  alt="Populer 1"
                   className="aspect-video overflow-hidden rounded-md object-cover"
                 />
                 <div className="text-sm font-medium leading-none group-hover:underline dark:text-foreground">
@@ -163,15 +167,16 @@ export default function Component() {
                 <Button className="mt-3">Tonton Sekarang {">"}</Button>
               </Link>
               <Link
-                href="/pages/Manga/details/manga-to970571"
+                href="/pages/Manga"
                 className="group grid w-full justify-start gap-1 rounded-md bg-background p-4 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 dark:bg-background dark:text-foreground dark:hover:bg-accent dark:hover:text-accent-foreground"
                 prefetch={false}
               >
-                <img
+                <Image
                   src="/manga_watched.png"
                   width={600}
                   height={338}
-                  alt="New Release 2"
+                  loading="lazy"
+                  alt="Populer 2"
                   className="aspect-video overflow-hidden rounded-md object-cover"
                 />
                 <div className="mt-1 text-sm font-medium leading-none group-hover:underline dark:text-foreground">
