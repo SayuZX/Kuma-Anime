@@ -33,13 +33,25 @@ function groupQualities(qualities) {
     .filter((group) => group.servers.length);
 }
 
+const AVOID_DEFAULT =
+  /pixeldrain|short\.ink|short\.icu|vidhide|callistanise|bestx|helvid/i;
+
+function proxify(url) {
+  const u = String(url || "");
+  const px = u.match(/pixeldrain\.com\/u\/([a-zA-Z0-9]+)/i);
+  if (px) {
+    return `/api/stream?url=${enc(`https://pixeldrain.com/api/file/${px[1]}`)}`;
+  }
+  return u;
+}
+
 function groupAnimasuStreams(streams) {
   const groups = {};
   asArray(streams).forEach((s) => {
     const res = (String(s.name || "").match(/(\d{3,4}p)/) || [])[1] || "Default";
     (groups[res] = groups[res] || []).push({
       name: s.name || res,
-      serverId: enc(s.url || ""),
+      serverId: enc(proxify(s.url)),
     });
   });
   return Object.entries(groups).map(([resolution, servers]) => ({
@@ -137,10 +149,13 @@ const ANIMASU = {
       title: e.name,
     })),
   mapEpisode: (j) => {
-    const streams = asArray(j?.streams);
+    const all = asArray(j?.streams);
+    const clean = all.find((s) => /pixeldrain\.com\/u\//i.test(String(s.url)));
+    const embed = all.find((s) => s.url && !AVOID_DEFAULT.test(s.url));
+    const pick = clean || embed || all[0];
     return {
-      embedUrl: streams[0]?.url || "",
-      qualities: groupAnimasuStreams(streams),
+      embedUrl: proxify(pick?.url),
+      qualities: groupAnimasuStreams(all),
     };
   },
   resolveServer: (id) => decodeURIComponent(id || ""),
